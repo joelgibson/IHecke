@@ -1,4 +1,8 @@
-import "EltIHke.m": _LaurentPolyRing, _v, _EltIHkeConstruct, _AddScaled, _RemoveZeros, _AddScaledTerm;
+import "Base.m":
+    _LaurentPolyRing,
+    _v;
+
+import "EltIHke.m":  _EltIHkeConstruct, _AddScaled, _RemoveZeros, _AddScaledTerm;
 import "AlgIHkeBase.m": _AlgIHkeBaseInit;
 
 

@@ -1,4 +1,10 @@
-import "EltIHke.m": _LaurentPolyRing, _EltIHkeConstruct, _AddScaled, _RemoveZeros, _AddScaledTerm;
+import "Base.m":
+    _LaurentPolyRing;
+import "EltIHke.m":
+    _EltIHkeConstruct,
+    _AddScaled,
+    _RemoveZeros,
+    _AddScaledTerm;
 
 
 declare type AlgIHkeBase;

@@ -1,9 +1,4 @@
-import "EltIHke.m": _LaurentPolyRing;
-
-intrinsic IHeckeVersion() -> MonStgElt
-{Report version information for IHecke.}
-    return "IHecke version 2021-08-18";
-end intrinsic;
+import "Base.m": _LaurentPolyRing;
 
 declare type AlgIHke;
 declare attributes AlgIHke:

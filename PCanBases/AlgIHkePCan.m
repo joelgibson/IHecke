@@ -1,13 +1,14 @@
-import "AlgIHkeBase.m": _AlgIHkeBaseInit;
-import "EltIHke.m":
+import "../Package/Base.m":
     _LaurentPolyRing,
-    _v,
+    _v;
+import "../Package/EltIHke.m":
     _EltIHkeConstruct,
     _AddScaled,
     _RemoveZeros,
     _AddScaledTerm,
     _IsUniTriangular;
-import "../PCanBases/PCanDB.m": PCanDB;
+import "../Package/AlgIHkeBase.m": _AlgIHkeBaseInit;
+import "PCanDB.m": PCanDB;
 
 
 // Our "implementation" of the p-canonical basis is really just reading pre-calculated bases from a

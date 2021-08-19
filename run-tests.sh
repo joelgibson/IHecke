@@ -2,13 +2,11 @@
 
 # Run each test file
 for f in Tests/*; do
-    # if magma -b batch:=true $f; then
-    #     true
-    # else
-    #     echo $f $'failed. Run\n    magma $f\nto debug.';
-    # fi;
     echo -n "Running $f ... "
-    if ! magma -b batch:=true $f; then
+
+    # For some reason passing batch:=true here (or any other argument) causes magma to segfault.
+    magma -b "$f"
+    if [ $? -ne 0 ]; then
         exit
     fi
 done

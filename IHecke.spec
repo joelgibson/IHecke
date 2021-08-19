@@ -4,13 +4,14 @@
         AlgIHke.m
         AlgIHkeBase.m
         AlgIHkeCan.m
-        AlgIHkePCan.m
         AlgIHkeStd.m
+        Base.m
         Cells.m
         EltIHke.m
     }
     PCanBases
     {
+        AlgIHkePCan.m
         PCanDB.m
     }
 }

@@ -1,9 +1,6 @@
-// The base ring we work over for the Hecke algebra is the Laurent polynomials.
-// In Magma, a built-in structure that does this is the Laurent series.
-_LaurentPolyRing := LaurentSeriesRing(Integers());
-AssignNames(~_LaurentPolyRing, ["v"]);
-_v := _LaurentPolyRing.1;
-
+import "Base.m":
+    _LaurentPolyRing,
+    _v;
 
 // An EltIHke is a formal Laurent-polynomial-linear combination of Coxeter group elements. The
 // interpretation of this linear combination depends on what the Parent structure is: it is either
