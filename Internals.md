@@ -112,20 +112,21 @@ The non-coercive function for changing bases is
     {Express elt, which must be in the B basis, in the A basis.}
 
 The contract for calling this function is that we must have `B eq Parent(elt)` (an error will be
-thrown otherwise). In order to hook into the `ChangeBasis` function, a change of basis, the author
-should define the intrinsic
+thrown otherwise). In order to hook into the `ChangeBasis` function, the author should define the
+intrinsic
 
     intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
 
 replacing the two abstract types `AlgIHkeBase` mentioned with specific bases. For example, to define
-a change of basis from the canonical basis into the standard basis, the following intrinsic would be
-used:
+a change of basis from the canonical basis into the standard basis, the an intrinsic with the
+following signature should be defined:
 
     intrinsic _IHkeProtToBasis(H::AlgIHkeStd, C::AlgIHkeCan, w::GrpFPCoxElt) -> EltIHke
 
 When defining a new basis, the author *must* define at least a conversion from the new basis into
 either the standard or canonical basis, and a conversion from either of the standard or canonical
-basis into the new basis.
+basis into the new basis. The `ChangeBasis` function will automatically fall back to going via these
+bases if a direct conversion from `B` into `A` is not defined by `_IHkeProtToBasis`.
 
 
 ### Multiplication

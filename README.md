@@ -240,8 +240,8 @@ rather the Soergel normalisation of them). They can be extracted using the `Coef
     > Coefficient(H ! C_121, W.1);
     v^2
 
-Notice that the coefficient of the Coxeter group element `121` was `0` when in the canonical basis,
-but `v^2` when expressed in the standard basis.
+Notice that the coefficient of the Coxeter group element `W.1` in the canonical basis element
+`C_121`was `0` when in the canonical basis, but `v^2` when expressed in the standard basis.
 
 In mixed-basis arithmetic, whichever basis appears on the left is used as the output basis. In
 mixed-basis comparisons, the right element is (internally) converted to the left basis, then
@@ -297,8 +297,9 @@ in the same order as the set.
         v^-1 - v
     ]
 
-In Magma, if a function returning multiple values is used in a single-value context, then only the
-first return value is used. Therefore we can measure the size of the support using simply
+In Magma, if a function returning multiple values is used in a single-value context, then the
+function is treated as returning only the first argument. Hence we can check the size of the support
+by using the cardinality `#` operator:
 
     > #Support(H.[2,1] * H.1);
     2
