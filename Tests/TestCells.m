@@ -1,4 +1,4 @@
-if assigned batch then SetQuitOnError(true); else SetDebugOnError(true); end if;
+SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);
 AttachSpec("IHecke.spec");

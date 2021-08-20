@@ -1,33 +1,18 @@
-import "Base.m": _LaurentPolyRing;
+import "Base.m":
+    _LaurentPolyRing,
+    _IHkeFModInit;
 
-declare type AlgIHke;
-declare attributes AlgIHke:
-    // A Coxeter group of finitely-presented type, i.e. a GrpFPCox.
-    CoxeterGroup,
+////////////////////
+// The Hecke algebra
 
-    // The Coxeter matrix of CoxeterGroup, used for equality calculations.
-    CoxeterMatrix,
+declare type AlgIHke: IHkeFMod;
 
-    // An associative array with keys type names like AlgIHkeStd, AlgIHkeCan, and so on.
-    BasisCache;
-
-
-///////////////////////
-// Accessors
-
-intrinsic Print(alg::AlgIHke)
-{A short human-readable description of the algebra.}
-    printf "Iwahori-Hecke algebra of type %o", CartanName(alg`CoxeterGroup);
-end intrinsic;
-
-intrinsic CoxeterGroup(alg::AlgIHke) -> GrpFPCox
-{The underlying Coxeter group (actually Coxeter system, since a GrpFPCox comes with generators).}
-    return alg`CoxeterGroup;
-end intrinsic;
-
-intrinsic BaseRing(alg::AlgIHke) -> Rng
-{The Laurent series ring (we use only the polynomial part).}
-    return _LaurentPolyRing;
+intrinsic IHeckeAlgebra(W::GrpFPCox) -> AlgIHke
+{Create a new Hecke algebra.}
+    alg := New(AlgIHke);
+    name := Sprintf("Iwahori-Hecke algebra of type %o", CartanName(W));
+    _IHkeFModInit(~alg, _LaurentPolyRing, name, W);
+    return alg;
 end intrinsic;
 
 intrinsic 'eq'(algA::AlgIHke, algB::AlgIHke) -> BoolElt
@@ -35,15 +20,7 @@ intrinsic 'eq'(algA::AlgIHke, algB::AlgIHke) -> BoolElt
     return algA`CoxeterMatrix eq algB`CoxeterMatrix;
 end intrinsic;
 
-
-///////////////////////
-// Creation
-
-intrinsic IHeckeAlgebra(W::GrpFPCox) -> AlgIHke
-{Create a new Hecke algebra.}
-    alg := New(AlgIHke);
-    alg`CoxeterGroup := W;
-    alg`CoxeterMatrix := CoxeterMatrix(W);
-    alg`BasisCache := AssociativeArray();
-    return alg;
+intrinsic DefaultBasis(alg::AlgIHke) -> AlgIHkeStd
+{}
+    return IHeckeAlgebraStd(alg);
 end intrinsic;

@@ -1,7 +1,7 @@
 // Test creation of the canonical basis, and conversion to and from the standard basis.
 // Also use the bar involution on the standard basis to double-check the canonical basis.
 
-if assigned batch then SetQuitOnError(true); else SetDebugOnError(true); end if;
+SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);
 AttachSpec("IHecke.spec");

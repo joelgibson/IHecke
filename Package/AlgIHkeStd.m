@@ -36,6 +36,11 @@ intrinsic 'eq'(H1::AlgIHkeStd, H2::AlgIHkeStd) -> BoolElt
     return Parent(H1) eq Parent(H2);
 end intrinsic;
 
+intrinsic _IHkeProtUnit(H::AlgIHkeStd) -> EltIHke
+{}
+    return H.0;
+end intrinsic;
+
 
 
 //////////////////////////////////

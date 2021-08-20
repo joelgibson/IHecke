@@ -146,8 +146,9 @@ end intrinsic;
 //////////////////////////
 // Basis change (protocol)
 //
-// We'll define conversions in and out of the canonical basis, rather than the standard basis, since
-// the data files have directly given us the p-canonical basis in terms of the canonical basis.
+// We'll define conversions in and out of the canonical basis, rather than the standard basis. We
+// still need to provide an explicit conversion to the standard basis, since it's the default basis
+// of the Hecke algebra.
 
 intrinsic _IHkeProtToBasis(C::AlgIHkeCan, pC::AlgIHkePCan, w::GrpFPCoxElt) -> EltIHke
 {}
@@ -179,4 +180,16 @@ intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, C::AlgIHkeCan, w::GrpFPCoxElt) -> El
 
     pC`FromCanCache[w] := result;
     return result;
+end intrinsic;
+
+intrinsic _IHkeProtToBasis(H::AlgIHkeStd, pC::AlgIHkePCan, w::GrpFPCoxElt) -> EltIHke
+{}
+    C := IHeckeAlgebraCan(Parent(pC));
+    return _IHkeProtToBasisElt(H, C, _IHkeProtToBasis(C, pC, w));
+end intrinsic;
+
+intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltIHke
+{}
+    C := IHeckeAlgebraCan(Parent(pC));
+    return _IHkeProtToBasisElt(pC, C, _IHkeProtToBasis(C, H, w));
 end intrinsic;

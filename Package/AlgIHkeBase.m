@@ -1,5 +1,3 @@
-import "Base.m":
-    _LaurentPolyRing;
 import "EltIHke.m":
     _EltIHkeConstruct,
     _AddScaled,
@@ -24,13 +22,13 @@ declare attributes AlgIHkeBase:
 
 // An AlgIHkeBase should never be created, but rather types extending it should be created.
 // This procedure initialises the common attributes.
-procedure _AlgIHkeBaseInit(~basis, alg, basisSymbol, basisName)
-    assert ISA(Type(alg), AlgIHke);
+procedure _AlgIHkeBaseInit(~basis, fmod, basisSymbol, basisName)
+    assert ISA(Type(fmod), IHkeFMod);
     assert ISA(Type(basis), AlgIHkeBase);
     assert Type(basisSymbol) eq MonStgElt;
     assert Type(basisName) eq MonStgElt;
 
-    basis`Parent := alg;
+    basis`Parent := fmod;
     basis`BasisSymbol := basisSymbol;
     basis`BasisName := basisName;
 end procedure;
@@ -47,6 +45,7 @@ intrinsic Print(A::AlgIHkeBase)
         BasisSymbol(A);
 end intrinsic;
 
+// TODO: Rename this to FreeModule.
 intrinsic Parent(A::AlgIHkeBase) -> AlgIHke
 {The parent Hecke algebra.}
     return A`Parent;
@@ -54,7 +53,7 @@ end intrinsic;
 
 intrinsic CoxeterGroup(A::AlgIHkeBase) -> GrpFPCox
 {The underlying Coxeter group of the Hecke algebra.}
-    return A`Parent`CoxeterGroup;
+    return CoxeterGroup(A`Parent);
 end intrinsic;
 
 intrinsic BasisSymbol(A::AlgIHkeBase) -> MonStgElt
@@ -69,8 +68,50 @@ end intrinsic;
 
 intrinsic BaseRing(A::AlgIHkeBase) -> Rng
 {Return the base ring (a Laurent series ring).}
-    return _LaurentPolyRing;
+    return BaseRing(A`Parent);
 end intrinsic;
+
+
+intrinsic 'eq'(A::AlgIHkeBase, B::AlgIHkeBase) -> BoolElt
+{Types extending AlgIHkeBase must override this.}
+    return false;
+end intrinsic;
+
+intrinsic _IHkeProtConstructElement(A::AlgIHkeBase, terms::Assoc) -> EltIHke
+{Default implementation for constructing an element from an associative array. Bases should override
+ this if they need to restrict the basis to a subset.}
+    return _EltIHkeConstruct(A, terms);
+end intrinsic;
+
+intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
+{Fallback function for expressing B(w) in the A basis. Bases must override this at least twice, to
+ convert to and from the default basis.}
+    return false;
+end intrinsic;
+
+// TODO: Re-evaluate whether this was a good choice.
+intrinsic _IHkeProtToBasisElt(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> EltIHke
+{Default implementation, lifting the map w -> elt to a map elt -> elt.}
+    W := CoxeterGroup(A);
+    if Type(_IHkeProtToBasis(A, B, W.0)) ne EltIHke then
+        return false;
+    end if;
+
+
+    terms := AssociativeArray(W);
+    for w -> coeff in elt`Terms do
+        _AddScaled(~terms, _IHkeProtToBasis(A, B, w)`Terms, coeff);
+    end for;
+    _RemoveZeros(~terms);
+    return _IHkeProtConstructElement(A, terms);
+end intrinsic;
+
+
+intrinsic _IHkeProtUnit(A::AlgIHkeBase) -> EltIHke
+{If A is the basis of an algebra, this should return the unit element.}
+    return false;
+end intrinsic;
+
 
 
 //////////////////////////////
@@ -82,24 +123,24 @@ intrinsic '.'(A::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
         "Group element", w, "is not a member of", CoxeterGroup(A);
 
     terms := AssociativeArray(CoxeterGroup(A));
-    terms[w] := _LaurentPolyRing ! 1;
-    return _EltIHkeConstruct(A, terms);
+    terms[w] := BaseRing(A) ! 1;
+    return _IHkeProtConstructElement(A, terms);
 end intrinsic;
 
 intrinsic '.'(A::AlgIHkeBase, s::RngIntElt) -> EltIHke
 {The basis element indexed by the Coxeter group element W.s, equivalent to A.(W.s).}
     w := CoxeterGroup(A) . s;
     terms := AssociativeArray(CoxeterGroup(A));
-    terms[w] := _LaurentPolyRing ! 1;
-    return _EltIHkeConstruct(A, terms);
+    terms[w] := BaseRing(A) ! 1;
+    return _IHkeProtConstructElement(A, terms);
 end intrinsic;
 
 intrinsic '.'(A::AlgIHkeBase, word::SeqEnum[RngIntElt]) -> EltIHke
 {The basis element indexed by the Coxeter group word, equivalent to A.(W!word).}
     w := CoxeterGroup(A) ! word;
     terms := AssociativeArray(CoxeterGroup(A));
-    terms[w] := _LaurentPolyRing ! 1;
-    return _EltIHkeConstruct(A, terms);
+    terms[w] := BaseRing(A) ! 1;
+    return _IHkeProtConstructElement(A, terms);
 end intrinsic;
 
 
@@ -108,10 +149,21 @@ end intrinsic;
 
 intrinsic IsCoercible(A::AlgIHkeBase, r::RngElt) -> BoolElt, EltIHke
 {The unit map of the algebra: coerce a scalar to the identity multiplied by that scalar.}
-    ok, result := IsCoercible(_LaurentPolyRing, r);
-    if ok then
-        return true, A.0 * r;
+    // Check if this specific basis defines a unit.
+    unit := _IHkeProtUnit(A);
+    if Type(unit) eq EltIHke then
+        return true, unit * r;
     end if;
+
+    // Check if the default basis defines a unit.
+    def := DefaultBasis(Parent(A));
+    unit := _IHkeProtUnit(def);
+    if Type(unit) eq EltIHke then
+        return true, BasisChange(A, def, unit * r);
+    end if;
+
+    // We assume that there is no algebra structure.
+    return false;
 end intrinsic;
 
 intrinsic IsCoercible(A::AlgIHkeBase, x::EltIHke) -> BoolElt, EltIHke
@@ -128,17 +180,6 @@ intrinsic IsCoercible(A::AlgIHkeBase, x::EltIHke) -> BoolElt, EltIHke
 
     // Otherwise, perform a basis conversion.
     return true, ChangeBasis(A, Parent(x), x);
-end intrinsic;
-
-
-/////////////////////
-// Predicates
-
-intrinsic 'eq'(A::AlgIHkeBase, B::AlgIHkeBase) -> BoolElt
-{Two Hecke algebra bases are 'equal' if they refer to the same named basis. They may or may not be
- actually equal as a set of W-indexed elements in the Hecke algebra. This function should be
- overridden.}
-    return false;
 end intrinsic;
 
 
@@ -161,37 +202,22 @@ intrinsic ChangeBasis(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> EltIHke
     assert B eq Parent(elt);
     W := CoxeterGroup(A);
 
+    // Simple case: same basis.
+    if A eq B then
+        return elt;
+    end if;
+
     // Test to see if there is a direct basis conversion A <- B.
-    if Type(_IHkeProtToBasis(A, B, W.0)) eq EltIHke then
-        terms := AssociativeArray(W);
-        for w -> coeff in elt`Terms do
-            _AddScaled(~terms, _IHkeProtToBasis(A, B, w)`Terms, coeff);
-        end for;
-        _RemoveZeros(~terms);
-        return _EltIHkeConstruct(A, terms);
+    result := _IHkeProtToBasisElt(A, B, elt);
+    if Type(result) eq EltIHke then
+        return result;
     end if;
 
-    // Otherwise, see if there is an indirect conversion A <- X <- B, where X is either the
-    // standard basis or the canonical basis.
-    H := IHeckeAlgebraStd(Parent(A));
-    if Type(_IHkeProtToBasis(A, H, W.0)) eq EltIHke and Type(_IHkeProtToBasis(H, B, W.0)) eq EltIHke then
-        return ChangeBasis(A, H, ChangeBasis(H, B, elt));
-    end if;
-
-    C := IHeckeAlgebraCan(Parent(A));
-    if Type(_IHkeProtToBasis(A, C, W.0)) eq EltIHke and Type(_IHkeProtToBasis(C, B, W.0)) eq EltIHke then
-        return ChangeBasis(A, C, ChangeBasis(C, B, elt));
+    // Otherwise, convert via the default basis.
+    D := DefaultBasis(Parent(A));
+    if Type(_IHkeProtToBasis(A, D, W.0)) eq EltIHke and Type(_IHkeProtToBasis(D, B, W.0)) eq EltIHke then
+        return ChangeBasis(A, D, ChangeBasis(D, B, elt));
     end if;
 
     error Sprintf("No basis conversion found to (%o) from (%o)", A, B);
-end intrinsic;
-
-
-intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
-{Fallback function for expressing B(w) in the A basis.}
-    if A eq B then
-        return B.w;
-    end if;
-
-    return false;
 end intrinsic;

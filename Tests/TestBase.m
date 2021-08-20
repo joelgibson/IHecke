@@ -1,7 +1,7 @@
 // Test creation of a Hecke algebra and its standard basis, and basic operations within the standard
 // basis.
 
-if assigned batch then SetQuitOnError(true); else SetDebugOnError(true); end if;
+SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);
 AttachSpec("IHecke.spec");

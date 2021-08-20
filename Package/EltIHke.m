@@ -161,7 +161,10 @@ end function;
 // R-module operations
 
 intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
-{The sum of two elements. Will throw an if over different algebras.}
+{The sum of two elements. Will throw an error if adding over different free modules.}
+    error if Parent(Parent(elt1)) ne Parent(Parent(elt2)),
+        "Cannot add in different free modules", Parent(Parent(elt1)), "and", Parent(Parent(elt2));
+
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
         elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
@@ -176,7 +179,10 @@ intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
 end intrinsic;
 
 intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
-{The difference of two elements. Will throw an if over different algebras.}
+{The difference of two elements. Will throw an if subtracting over different free modules.}
+    error if Parent(Parent(elt1)) ne Parent(Parent(elt2)),
+        "Cannot subtract in different free modules", Parent(Parent(elt1)), "and", Parent(Parent(elt2));
+
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
         elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
@@ -192,17 +198,14 @@ end intrinsic;
 
 intrinsic '*'(elt::EltIHke, scalar::RngElt) -> EltIHke
 {Scale an element by a scalar (Laurent polynomial or integer).}
-    r := _LaurentPolyRing ! scalar; // Throws an error if scalar is not coercible into _LaurentPolyRing.
+    ok, r := IsCoercible(BaseRing(Parent(elt)), scalar);
+    error if not ok,
+        "Cannot scalar multiply by", scalar, "since the base ring of", Parent(elt), "is", BaseRing(Parent(elt));
 
     W := CoxeterGroup(elt`Parent);
     assocs := AssociativeArray(W);
-
-    // Special-case zero (skips work, also by doing this we don't need to call _RemoveZeros)
-    if IsZero(r) then
-        return _EltIHkeConstruct(Parent(elt), assocs);
-    end if;
-
     _AddScaled(~assocs, elt`Terms, r);
+    _RemoveZeros(~assocs);
     return _EltIHkeConstruct(Parent(elt), assocs);
 end intrinsic;
 
