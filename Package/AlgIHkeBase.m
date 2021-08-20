@@ -103,8 +103,8 @@ intrinsic '.'(A::AlgIHkeBase, word::SeqEnum[RngIntElt]) -> EltIHke
 end intrinsic;
 
 
-//////////////////////
-// Coercion of scalars
+///////////
+// Coercion
 
 intrinsic IsCoercible(A::AlgIHkeBase, r::RngElt) -> BoolElt, EltIHke
 {The unit map of the algebra: coerce a scalar to the identity multiplied by that scalar.}

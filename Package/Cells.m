@@ -49,6 +49,15 @@ intrinsic CellLe(cel::CelIHke, x::GrpFPCoxElt, y::GrpFPCoxElt) -> BoolElt
     return ok;
 end intrinsic;
 
+// Experimental: returning the edges between cells. Eventually this should return the transitive
+// reduction.
+intrinsic GeneratingEdges(cel::CelIHke) -> SeqEnum[SetEnum[GrpFPCox]]
+{Return a list of edges [comp1, comp2] which generate the cell order.}
+    return [ [cel`Components[Index(InitialVertex(edge))], cel`Components[Index(TerminalVertex(edge))] ]
+           : edge in Edges(cel`QuotGraph)
+           | InitialVertex(edge) ne TerminalVertex(edge) ];
+end intrinsic;
+
 
 /////////////////////
 // Creation

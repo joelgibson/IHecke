@@ -1,8 +1,10 @@
 # IHecke
 
-`IHecke` is a package for [Magma] implementing Iwahori-Hecke algebras, along with some interesting
-bases. It uses the Soergel convention for the Hecke algebra, so a reader of the book
-[Introduction to Soergel Bimodules][SBim] should feel at home.
+`IHecke` is a package for [Magma] implementing Iwahori-Hecke algebras. It implements the standard
+and canonical bases of the Hecke algebra (Using the Soergel convention, so a reader of the book
+[Introduction to Soergel Bimodules][SBim] should feel at home). In addition, it comes bundled with
+some p-canonical bases for small rank groups (all groups of rank at most 4, excluding F4), and can
+calculate left, right, and two-sided cells and p-cells.
 
 The term "Hecke algebra" is already used within Magma for a different kind of algebra, hence all of
 the names in this package are prefixed with the letter I (standing for "Iwahori"), for example the
@@ -31,6 +33,9 @@ design is discussed more at [Internals.md](Internals.md).
   * [Operations on bases and elements](#operations-on-bases-and-elements)
   * [Cells](#cells)
   * [The p-canonical basis](#the-p-canonical-basis)
+- [Examples](#examples)
+  * [Printing basis elements](#printing-basis-elements)
+  * [Displaying cells and p-cells](#displaying-cells-and-p-cells)
 - [Changelog](#changelog)
 - [TODO](#todo)
 
@@ -64,10 +69,6 @@ The tests and examples are designed to be run from within the `IHecke` directory
 You should see some output ending in:
 
     All tests successful.
-
-The examples are also designed to be run from here, eg
-
-    $ magma type:=B2 Examples/PrintCanonicalBasis.m
 
 
 ## Working with Coxeter groups in Magma
@@ -415,8 +416,85 @@ canonical basis. We can confirm this:
     ]
 
 
+# Examples
+
+There are some short programs in the `Examples/` directory, showing how the library can be used. The
+examples are designed to be run from inside the same directory as `IHecke.spec`.
+
+
+## Printing basis elements
+
+The `Examples/PrintCanonicalBasis.m` program shows how to use `IHecke` as a calculator for canonical
+basis elements in terms of the standard basis, by printing out either a list or a table. To print a
+list:
+
+    $ magma -b type:=A2 Examples/PrintCanonicalBasis.m
+    Numbering convention for type A2:
+
+    A2    1 - 2
+
+    Canonical basis:
+    (1)C(id) = (1)H(id)
+    (1)C(1) = (1)H(1) + (v)H(id)
+    (1)C(2) = (1)H(2) + (v)H(id)
+    (1)C(12) = (1)H(12) + (v)H(2) + (v)H(1) + (v^2)H(id)
+    (1)C(21) = (1)H(21) + (v)H(2) + (v)H(1) + (v^2)H(id)
+    (1)C(121) = (1)H(121) + (v)H(21) + (v)H(12) + (v^2)H(2) + (v^2)H(1) + (v^3)H(id)
+
+To print a table:
+
+    $ magma -b type:=A2 tabular:=true Examples/PrintCanonicalBasis.m
+        id  1   2   12  21  121
+    id  1
+    1   v   1
+    2   v       1
+    12  v^2 v   v   1
+    21  v^2 v   v       1
+    121 v^3 v^2 v^2 v   v   1
+
+
+## Displaying cells and p-cells
+
+The `Examples/GraphLeftCells.m` program shows how to use `IHecke` in conjunction with
+[Graphviz](https://graphviz.org/) to graphically display the left cells or p-cells for a group. (The
+left cells are the left cells of the canonical basis, the left p-cells are the left cells of the
+p-canonical basis). You will need to have Graphviz installed (on Linux or Mac, it should be
+available from your package manager). You can check it is installed by running
+
+    $ dot -V
+    dot - graphviz version 2.43.0 (0)
+
+The program `Examples/GraphLeftCells.m` produces a text file describing a directed graph, which the
+Graphviz program `dot` then recieves and turns into an image file. To see what is happening, try
+running the example without running it through `dot`:
+
+    $ magma -b type:=G2 prime:=3 Examples/GraphLeftCells.m
+
+You should see a fairly understandable description of a directed graph. Note that we used the `-b`
+flag above: this tells Magma not to print its usual preamble and postamble, which would confuse
+GraphViz at the next step. To create the image, run the output through the `dot` layout program: we
+also first run it through `tred` which computes the transitive reduction of the graph, whittling the
+edges down to a minimal subset which generate the cell order:
+
+    $ magma -b type:=G2 prime:=3 Examples/GraphLeftCells.m | tred | dot -Tpng -o g2p3.png
+
+After opening `g2p3.png`, you should see a graph much like one of the ones below:
+
+<p align="center">
+<img alt="G2, characteristic zero cells" src="Examples/GraphLeftCells-G2p0.gif?raw=true">
+&nbsp;
+<img alt="G2, characteristic 2 cells" src="Examples/GraphLeftCells-G2p2.gif?raw=true">
+&nbsp;
+<img alt="G2, characteristic 3 cells" src="Examples/GraphLeftCells-G2p3.gif?raw=true">
+</p>
+
+The cell indices (`LCell #2` for example) are not meaningful.
+
+
 # Changelog
 
+- Development version
+  - Added example of how to display left cells using Graphviz.
 - Version 2021-08-18 (Current)
   - Initial release, supporting bases `Std`, `Can`, and `PCan` of the Hecke algebra, as well as cell
       computations.

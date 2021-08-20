@@ -15,6 +15,9 @@ done
 declare -a examples=(
     "magma -b type:=A3 Examples/PrintCanonicalBasis.m"
     "magma -b type:=A3 tabular:=true Examples/PrintCanonicalBasis.m"
+    "magma -b type:=G2 Examples/GraphLeftCells.m"
+    "magma -b type:=G2 prime:=2 Examples/GraphLeftCells.m"
+    "magma -b type:=G2 prime:=3 Examples/GraphLeftCells.m"
 )
 for cmd in "${examples[@]}"; do
     if ! $cmd > /dev/null; then
