@@ -428,6 +428,7 @@ canonical basis. We can confirm this:
   - Perform transitive reduction, so that it is in a canonical form.
   - Make it available to the user (interface design), and an example involving GraphVis.
 - (High priority) Spherical and Antispherical left/right modules.
+- (Cleanup) Document the use of `eq` on `AlgIHkeBase`.
 - (Low priority) Allow more custom formatting of the output, such as choosing basis names, and
     choosing formatting of Coxeter group elements.
 - (Low priority) Performance:

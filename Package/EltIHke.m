@@ -153,7 +153,7 @@ end procedure;
 function _IsUniTriangular(terms, w)
     return IsDefined(terms, w)
         and terms[w] eq 1
-        and forall{u : u -> _ in terms | u le w};
+        and forall{u : u -> _ in terms | BruhatLessOrEqual(u, w)};
 end function;
 
 
