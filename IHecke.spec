@@ -8,6 +8,9 @@
         Base.m
         Cells.m
         EltIHke.m
+        RModIHke.m
+        RModIHkeCan.m
+        RModIHkeStd.m
     }
     PCanBases
     {

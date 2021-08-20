@@ -217,19 +217,47 @@ end intrinsic;
 
 intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
 {}
-    result := _IHkeProtMult(Parent(eltA), eltA, Parent(eltB), eltB);
-    if Type(result) eq EltIHke then
-        return result;
+    // First we need to check whether this is multiplication in an algebra, or action on a module.
+    typeA := Type(Parent(eltA));
+    typeB := Type(Parent(eltB));
+
+    // Multiplying in the algebra.
+    if ISA(typeA, AlgIHkeBase) and ISA(typeB, AlgIHkeBase) then
+        result := _IHkeProtMult(Parent(eltA), eltA, Parent(eltB), eltB);
+        if Type(result) eq EltIHke then
+            return result;
+        end if;
+
+        // Convert to standard basis and multiply.
+        H := IHeckeAlgebraStd(Parent(Parent(eltA)));
+        product := _IHkeProtMult(H, ChangeBasis(H, Parent(eltA), eltA), H, ChangeBasis(H, Parent(eltB), eltB));
+        return ChangeBasis(Parent(eltA), H, product);
     end if;
 
-    // Convert to standard basis and multiply.
-    H := IHeckeAlgebraStd(Parent(Parent(eltA)));
-    product := _IHkeProtMult(H, ChangeBasis(H, Parent(eltA), eltA), H, ChangeBasis(H, Parent(eltB), eltB));
-    return ChangeBasis(Parent(eltA), H, product);
+    // Action on a right module.
+    if ISA(typeA, RModIHkeBase) and ISA(typeB, AlgIHkeBase) then
+        result := _IHkeProtAction(Parent(eltA), eltA, Parent(eltB), eltB);
+        if Type(result) eq EltIHke then
+            return result;
+        end if;
+
+        // Convert to standard basis and perform action.
+        mH := IHeckeAlgebraStd(Parent(Parent(eltA)));
+        H := IHeckeAlgebraStd(Parent(Parent(eltB)));
+        product := _IHkeProtMult(mH, ChangeBasis(mH, Parent(eltA), eltA), H, ChangeBasis(H, Parent(eltB), eltB));
+        return product;//ChangeBasis(Parent(eltA), H, product);
+    end if;
+
+    error "Illegal types for *:", typeA, "and", typeB;
 end intrinsic;
 
 intrinsic _IHkeProtMult(A::AlgIHkeBase, eltA::EltIHke, B::AlgIHkeBase, eltB::EltIHke) -> EltIHke
 {Fallback implementation for multiplication.}
+    return false;
+end intrinsic;
+
+intrinsic _IHkeProtAction(M::RModIHkeBase, eltM::EltIHke, B::AlgIHkeBase, eltB::EltIHke) -> EltIHke
+{Fallback implementation for module action.}
     return false;
 end intrinsic;
 
