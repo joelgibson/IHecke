@@ -2,7 +2,6 @@ import "../Package/Base.m":
     _LaurentPolyRing,
     _v;
 import "../Package/EltIHke.m":
-    _EltIHkeConstruct,
     _AddScaled,
     _RemoveZeros,
     _AddScaledTerm,
@@ -176,7 +175,7 @@ intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, C::AlgIHkeCan, w::GrpFPCoxElt) -> El
         _AddScaled(~terms, _IHkeProtToBasis(pC, C, u)`Terms, -coeff);
     end for;
     _RemoveZeros(~terms);
-    result := _EltIHkeConstruct(pC, terms);
+    result := EltIHkeConstruct(pC, terms);
 
     pC`FromCanCache[w] := result;
     return result;

@@ -1,5 +1,4 @@
 import "EltIHke.m":
-    _EltIHkeConstruct,
     _AddScaled,
     _RemoveZeros,
     _AddScaledTerm;
@@ -39,9 +38,9 @@ end procedure;
 
 intrinsic Print(A::AlgIHkeBase)
 {}
-    printf "%o of Hecke algebra for Coxeter group of type %o, symbol %o",
+    printf "%o of %o, symbol %o",
         BasisName(A),
-        CartanName(CoxeterGroup(A)),
+        Name(Parent(A)),
         BasisSymbol(A);
 end intrinsic;
 
@@ -77,12 +76,6 @@ intrinsic 'eq'(A::AlgIHkeBase, B::AlgIHkeBase) -> BoolElt
     return false;
 end intrinsic;
 
-intrinsic _IHkeProtConstructElement(A::AlgIHkeBase, terms::Assoc) -> EltIHke
-{Default implementation for constructing an element from an associative array. Bases should override
- this if they need to restrict the basis to a subset.}
-    return _EltIHkeConstruct(A, terms);
-end intrinsic;
-
 intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
 {Fallback function for expressing B(w) in the A basis. Bases must override this at least twice, to
  convert to and from the default basis.}
@@ -103,7 +96,7 @@ intrinsic _IHkeProtToBasisElt(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> E
         _AddScaled(~terms, _IHkeProtToBasis(A, B, w)`Terms, coeff);
     end for;
     _RemoveZeros(~terms);
-    return _IHkeProtConstructElement(A, terms);
+    return EltIHkeConstruct(A, terms);
 end intrinsic;
 
 
@@ -124,7 +117,7 @@ intrinsic '.'(A::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
 
     terms := AssociativeArray(CoxeterGroup(A));
     terms[w] := BaseRing(A) ! 1;
-    return _IHkeProtConstructElement(A, terms);
+    return EltIHkeConstruct(A, terms);
 end intrinsic;
 
 intrinsic '.'(A::AlgIHkeBase, s::RngIntElt) -> EltIHke
@@ -132,7 +125,7 @@ intrinsic '.'(A::AlgIHkeBase, s::RngIntElt) -> EltIHke
     w := CoxeterGroup(A) . s;
     terms := AssociativeArray(CoxeterGroup(A));
     terms[w] := BaseRing(A) ! 1;
-    return _IHkeProtConstructElement(A, terms);
+    return EltIHkeConstruct(A, terms);
 end intrinsic;
 
 intrinsic '.'(A::AlgIHkeBase, word::SeqEnum[RngIntElt]) -> EltIHke
@@ -140,15 +133,27 @@ intrinsic '.'(A::AlgIHkeBase, word::SeqEnum[RngIntElt]) -> EltIHke
     w := CoxeterGroup(A) ! word;
     terms := AssociativeArray(CoxeterGroup(A));
     terms[w] := BaseRing(A) ! 1;
-    return _IHkeProtConstructElement(A, terms);
+    return EltIHkeConstruct(A, terms);
 end intrinsic;
 
 
 ///////////
 // Coercion
 
-intrinsic IsCoercible(A::AlgIHkeBase, r::RngElt) -> BoolElt, EltIHke
+intrinsic IsCoercible(A::AlgIHkeBase, elt::RngElt) -> BoolElt, EltIHke
 {The unit map of the algebra: coerce a scalar to the identity multiplied by that scalar.}
+    // Check that r coerces into the base ring.
+    ok, r := IsCoercible(BaseRing(A), elt);
+    if not ok then
+        return false, Sprintf("%o does not coerce into the base ring %o", elt, BaseRing(A));
+    end if;
+
+    // If r is zero, return the zero element (this is valid in any free module, while other scalars
+    // are only valid if the module also provides a unit map).
+    if r eq 0 then
+        return true, EltIHkeConstruct(A, AssociativeArray(CoxeterGroup(A)));
+    end if;
+
     // Check if this specific basis defines a unit.
     unit := _IHkeProtUnit(A);
     if Type(unit) eq EltIHke then
@@ -163,14 +168,14 @@ intrinsic IsCoercible(A::AlgIHkeBase, r::RngElt) -> BoolElt, EltIHke
     end if;
 
     // We assume that there is no algebra structure.
-    return false;
+    return false, Sprintf("No unit map provided for", A, "to use to insert the scalar", r);
 end intrinsic;
 
 intrinsic IsCoercible(A::AlgIHkeBase, x::EltIHke) -> BoolElt, EltIHke
 {Change the basis of x into A.}
     // Hecke algebras must be the same.
     if Parent(A) ne Parent(Parent(x)) then
-        return false;
+        return false, Sprintf("Cannot coerce from %o into %o (different free modules)", Parent(Parent(x)), Parent(A));
     end if;
 
     // Easy case: if x is already in the A basis, return x.

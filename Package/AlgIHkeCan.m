@@ -2,7 +2,6 @@ import "Base.m":
     _LaurentPolyRing,
     _v;
 import "EltIHke.m":
-    _EltIHkeConstruct,
     _AddScaled,
     _RemoveZeros,
     _AddScaledTerm,
@@ -66,7 +65,7 @@ function _RightMultCanGen(elt, s)
         end if;
     end for;
     _RemoveZeros(~terms);
-    return _EltIHkeConstruct(Parent(elt), terms);
+    return EltIHkeConstruct(Parent(elt), terms);
 end function;
 
 
@@ -153,7 +152,7 @@ intrinsic _IHkeProtToBasis(C::AlgIHkeCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltI
         _AddScaled(~terms, Cu`Terms, -coeff);
     end for;
     _RemoveZeros(~terms);
-    result := _EltIHkeConstruct(C, terms);
+    result := EltIHkeConstruct(C, terms);
 
     C`StdInCanCache[w] := result;
     return result;
@@ -173,5 +172,5 @@ intrinsic _IHkeProtBar(C::AlgIHkeCan, elt::EltIHke) -> EltIHke
         terms[w] := twist(coeff);
     end for;
 
-    return _EltIHkeConstruct(C, terms);
+    return EltIHkeConstruct(C, terms);
 end intrinsic;

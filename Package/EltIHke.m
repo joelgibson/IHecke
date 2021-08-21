@@ -19,17 +19,23 @@ declare attributes EltIHke:
 ////////////////////////////
 // Construction
 
-// An EltIHke is always constructed via this function. Other files defining intrinsics should
-// import this function.
-function _EltIHkeConstruct(parent, terms)
+intrinsic _IHkeProtValidateElt(B::AlgIHkeBase, elt::EltIHke)
+{This procedure may be overridden to throw an error if elt is illegal. For example, the spherical
+ and antispherical bases should only accept W_I-minimal coset representatives.}
+end intrinsic;
+
+intrinsic EltIHkeConstruct(B::AlgIHkeBase, terms::Assoc) -> EltIHke
+{Constructor for EltIHke (only this function should ever be used).}
+    // Check that zeros are normalised out.
     assert forall{w : w -> coeff in terms | coeff ne 0};
-    assert Universe(terms) eq CoxeterGroup(parent);
+    assert Universe(terms) eq CoxeterGroup(B);
 
     elt := New(EltIHke);
-    elt`Parent := parent;
+    elt`Parent := B;
     elt`Terms := terms;
+    _IHkeProtValidateElt(B, elt);
     return elt;
-end function;
+end intrinsic;
 
 
 //////////////////////////
@@ -175,7 +181,7 @@ intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
     _AddScaled(~assocs, elt1`Terms, 1);
     _AddScaled(~assocs, elt2`Terms, 1);
     _RemoveZeros(~assocs);
-    return _EltIHkeConstruct(Parent(elt1), assocs);
+    return EltIHkeConstruct(Parent(elt1), assocs);
 end intrinsic;
 
 intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
@@ -193,7 +199,7 @@ intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
     _AddScaled(~assocs, elt1`Terms, 1);
     _AddScaled(~assocs, elt2`Terms, -1);
     _RemoveZeros(~assocs);
-    return _EltIHkeConstruct(Parent(elt1), assocs);
+    return EltIHkeConstruct(Parent(elt1), assocs);
 end intrinsic;
 
 intrinsic '*'(elt::EltIHke, scalar::RngElt) -> EltIHke
@@ -206,7 +212,7 @@ intrinsic '*'(elt::EltIHke, scalar::RngElt) -> EltIHke
     assocs := AssociativeArray(W);
     _AddScaled(~assocs, elt`Terms, r);
     _RemoveZeros(~assocs);
-    return _EltIHkeConstruct(Parent(elt), assocs);
+    return EltIHkeConstruct(Parent(elt), assocs);
 end intrinsic;
 
 intrinsic '*'(scalar::RngElt, elt::EltIHke) -> EltIHke
@@ -225,10 +231,27 @@ intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
         return result;
     end if;
 
-    // Convert to standard basis and multiply.
-    H := IHeckeAlgebraStd(Parent(Parent(eltA)));
-    product := _IHkeProtMult(H, ChangeBasis(H, Parent(eltA), eltA), H, ChangeBasis(H, Parent(eltB), eltB));
-    return ChangeBasis(Parent(eltA), H, product);
+    // Convert to default basis and multiply.
+    defA := DefaultBasis(Parent(Parent(eltA)));
+    defB := DefaultBasis(Parent(Parent(eltB)));
+    product := _IHkeProtMult(defA, ChangeBasis(defA, Parent(eltA), eltA), defB, ChangeBasis(defB, Parent(eltB), eltB));
+
+    if Type(product) ne EltIHke then
+        error "Multiplication not defined between", Parent(Parent(eltA)), "and", Parent(Parent(eltB));
+    end if;
+
+    // Change back into either the A or B basis (we don't know which a priori, eg if this is a module action
+    // rather than a multiplication). Prefer the left.
+    if Parent(Parent(product)) cmpeq Parent(Parent(eltA)) then
+        return ChangeBasis(Parent(eltA), Parent(product), product);
+    elif Parent(Parent(product)) cmpeq Parent(Parent(eltB)) then
+        return ChangeBasis(Parent(eltB), Parent(product), product);
+    end if;
+
+    error
+        "Multiplication result in module", Parent(Parent(result)),
+        "was incompatible with either of", Parent(Parent(eltA)),
+        "or", Parent(Parent(eltB));
 end intrinsic;
 
 intrinsic _IHkeProtMult(A::AlgIHkeBase, eltA::EltIHke, B::AlgIHkeBase, eltB::EltIHke) -> EltIHke
@@ -280,6 +303,6 @@ intrinsic ReadEltIHke(parent::., eltStr::MonStgElt) -> EltIHke
         eltStr := matches[4];
     end while;
     _RemoveZeros(~terms);
-    return _EltIHkeConstruct(parent, terms);
+    return EltIHkeConstruct(parent, terms);
 end intrinsic;
 

@@ -47,6 +47,11 @@ intrinsic Print(M::IHkeFMod)
     printf "%o", M`Name;
 end intrinsic;
 
+intrinsic Name(M::IHkeFMod) -> MonStgElt
+{}
+    return M`Name;
+end intrinsic;
+
 intrinsic BaseRing(M::IHkeFMod) -> Rng
 {}
     return M`BaseRing;
