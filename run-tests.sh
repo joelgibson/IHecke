@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Run each test file
-for f in Tests/*; do
+for f in Tests/*.m; do
     echo -n "Running $f ... "
 
     # For some reason passing batch:=true here (or any other argument) causes magma to segfault.

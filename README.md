@@ -77,6 +77,8 @@ was introduced in version 2.25 (January 2020).
 
 ## Working with Coxeter groups in Magma
 
+<!-- BEGIN TEST CoxeterGroups -->
+
 Before starting with `IHecke`, some familiarity with how to wrangle Coxeter groups inside of Magma
 is helpful. Start up Magma and define a Coxeter group of your favourite type:
 
@@ -88,6 +90,7 @@ The name `GrpFPCox` is instructing Magma to build a Coxeter group backed by the 
 used by Magma can be checked by calling `CoxeterDiagram` on the group:
 
     > CoxeterDiagram(W);
+
     B3    1 - 2 === 3
 
 The identity of the group is `W.0`, and the three coxeter generators are `W.1`, `W.2`, and `W.3`
@@ -150,8 +153,12 @@ More information can be found in the [Magma handbook](http://magma.maths.usyd.ed
 split between the "Finitely-Presented Groups" and "Lie Theory -> Coxeter Groups" sections.
 
 
+<!-- END TEST CoxeterGroups -->
+
 
 ## The standard basis
+
+<!-- BEGIN TEST Bases -->
 
 To get going, attach the spec file. Depending on where `magma` is being run from (inside or outside
 of the `IHecke` directory), the path to the spec file may change. Verify things are correctly loaded
@@ -334,8 +341,12 @@ The Kazhdan-Lusztig bar involution can be calculated using `Bar`.
     (v^-1)C(121)
 
 
+<!-- END TEST Bases -->
+
 
 ## Cells
+
+<!-- BEGIN TEST Cells -->
 
 A based algebra defines a partitioning of its indexing set into equivalence classes called *cells*,
 and furthermore a partial order on those partitions called the *cell order*. There are three
@@ -381,7 +392,7 @@ Two Coxeter group elements can be compared in the cell ordering by using `CellLe
     > CellLe(left, W.1, W.1);
     true
 
-
+<!-- END TEST Cells -->
 
 ## The p-canonical basis
 
@@ -404,6 +415,8 @@ it requires two extra arguments: a cartan type and a prime. (The cartan type can
 the Hecke algebra in general, since the p-canonical basis depends on the root system rather than the
 Coxeter group. In short, B_n and C_n have different canonical bases).
 
+<!-- BEGIN TEST p-canonical -->
+
     $ magma
     > AttachSpec("IHecke.spec");
     > SetColumns(0);
@@ -411,8 +424,8 @@ Coxeter group. In short, B_n and C_n have different canonical bases).
     > HAlg := IHeckeAlgebra(W);
     > H := IHeckeAlgebraStd(HAlg);
     > C := IHeckeAlgebraCan(HAlg);
-    > pC := IHeckeAlgebraPcan(HAlg, "B2", 2);
-    The 2-canonical basis for type B2 was loaded from IHecke/PcanBases/Type-B2-P-2.
+    > pC := IHeckeAlgebraPCan(HAlg, "B2", 2);
+    The 2-canonical basis for type B2 was loaded from the database.
 
 As with the other bases, all of the interest is in converting between bases:
 
@@ -428,6 +441,8 @@ canonical basis. We can confirm this:
     [
     (1)C(212) + (1)C(2)
     ]
+
+<!-- END TEST p-canonical -->
 
 
 ## Antispherical and spherical modules
