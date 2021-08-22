@@ -34,16 +34,6 @@ intrinsic IHeckeAlgebraCan(alg::AlgIHke) -> AlgIHkeCan
 end intrinsic;
 
 
-////////////
-// Overrides
-
-intrinsic 'eq'(C1::AlgIHkeCan, C2::AlgIHkeCan) -> BoolElt
-{}
-    // If we have two bases of type AlgIHkeCan of the same Hecke algebra, they must be equal.
-    return Parent(C1) eq Parent(C2);
-end intrinsic;
-
-
 //////////////////////////
 // Basis conversion
 

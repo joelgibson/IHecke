@@ -25,12 +25,6 @@ intrinsic IHeckeAlgebraStd(alg::AlgIHke) -> AlgIHkeStd
     return alg`BasisCache[AlgIHkeStd];
 end intrinsic;
 
-intrinsic 'eq'(H1::AlgIHkeStd, H2::AlgIHkeStd) -> BoolElt
-{}
-    // If we have two bases of type AlgIHkeStd of the same Hecke algebra, they must be equal.
-    return Parent(H1) eq Parent(H2);
-end intrinsic;
-
 intrinsic _IHkeProtUnit(H::AlgIHkeStd) -> EltIHke
 {}
     return H.0;
@@ -152,17 +146,11 @@ intrinsic IHeckeAntiSphericalStd(asmod::ASphIHke) -> ASModIHkeStd
     return asmod`BasisCache[ASModIHkeStd];
 end intrinsic;
 
-intrinsic 'eq'(aH1::ASModIHkeStd, aH2::ASModIHkeStd) -> BoolElt
-{}
-    return Parent(aH1) eq Parent(aH2);
-end intrinsic;
-
 intrinsic _IHkeProtValidateElt(aH::ASModIHkeStd, elt::EltIHke)
 {Only allow I-minimal elements.}
     I := Parabolic(Parent(aH));
-    for w -> _ in elt`Terms do
-        error if not IsMinimal(I, w), w, "is not minimal with respect to", I;
-    end for;
+    error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},
+        w, "is not minimal with respect to", I;
 end intrinsic;
 
 intrinsic _IHkeProtMult(aH::ASModIHkeStd, asElt::EltIHke, H::AlgIHkeStd, hElt::EltIHke) -> EltIHke
@@ -202,17 +190,11 @@ intrinsic IHeckeSphericalStd(smod::SphIHke) -> SModIHkeStd
     return smod`BasisCache[SModIHkeStd];
 end intrinsic;
 
-intrinsic 'eq'(sH1::SModIHkeStd, sH2::SModIHkeStd) -> BoolElt
-{}
-    return Parent(sH1) eq Parent(sH2);
-end intrinsic;
-
 intrinsic _IHkeProtValidateElt(sH::SModIHkeStd, elt::EltIHke)
 {Only allow I-minimal elements.}
     I := Parabolic(Parent(sH));
-    for w -> _ in elt`Terms do
-        error if not IsMinimal(I, w), w, "is not minimal with respect to", I;
-    end for;
+    error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},
+        w, "is not minimal with respect to", I;
 end intrinsic;
 
 intrinsic _IHkeProtMult(sH::SModIHkeStd, sElt::EltIHke, H::AlgIHkeStd, hElt::EltIHke) -> EltIHke

@@ -72,8 +72,10 @@ end intrinsic;
 
 
 intrinsic 'eq'(A::AlgIHkeBase, B::AlgIHkeBase) -> BoolElt
-{Types extending AlgIHkeBase must override this.}
-    return false;
+{By default, two bases compare equal if they have the same type, and their parent free modules
+ compare equal. Bases parameterised on some additional data (eg p-canonical bases) should override
+ this intrinsic.}
+    return Type(A) eq Type(B) and Parent(A) cmpeq Parent(B);
 end intrinsic;
 
 intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke

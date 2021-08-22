@@ -1,6 +1,3 @@
-import "../Package/Base.m":
-    _LaurentPolyRing,
-    _v;
 import "../Package/EltIHke.m":
     _AddScaled,
     _RemoveZeros,
@@ -167,7 +164,7 @@ intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, C::AlgIHkeCan, w::GrpFPCoxElt) -> El
 
     W := CoxeterGroup(pC);
     terms := AssociativeArray(W);
-    terms[w] := _LaurentPolyRing ! 1;
+    terms[w] := BaseRing(Parent(pC)) ! 1;
     for u -> coeff in _IHkeProtToBasis(C, pC, w)`Terms do
         if u eq w then
             continue;
