@@ -161,7 +161,7 @@ of the `IHecke` directory), the path to the spec file may change. Verify things 
 by checking the version:
 
     $ magma
-    > AttachSpec("IHecke/IHecke.spec");
+    > AttachSpec("IHecke.spec");
     > IHeckeVersion();
     IHecke version 2021-08-18
 
@@ -342,7 +342,7 @@ an S3 example:
 
     $ magma
     > SetColumns(0);
-    > AttachSpec("IHecke/IHecke.spec");
+    > AttachSpec("IHecke.spec");
     > W := CoxeterGroup(GrpFPCox, "A2");
     > HAlg := IHeckeAlgebra(W);
     > C := IHeckeAlgebraCan(HAlg);
@@ -404,7 +404,7 @@ Coxeter group. In short, B_n and C_n have different canonical bases).
 <!-- BEGIN TEST p-canonical -->
 
     $ magma
-    > AttachSpec("IHecke/IHecke.spec");
+    > AttachSpec("IHecke.spec");
     > SetColumns(0);
     > W := CoxeterGroup(GrpFPCox, "B2");
     > HAlg := IHeckeAlgebra(W);
