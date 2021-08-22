@@ -392,6 +392,36 @@ Two Coxeter group elements can be compared in the cell ordering by using `CellLe
     > CellLe(left, W.1, W.1);
     true
 
+A generating set of the edges between components can be listed using `GeneratingEdges`, which can
+then be used to draw a Hasse diagram of the cells (see the
+[example below](#displaying-cells-and-p-cells)). Each edge is represented as a sequence containing
+two components, with the cell component on the left being lower than the one on the right.
+
+    > GeneratingEdges(left);
+    [
+    [
+    { $.1, $.2 * $.1 },
+    { $.1 * $.2 * $.1 }
+    ],
+    [
+    { $.2, $.1 * $.2 },
+    { $.1 * $.2 * $.1 }
+    ],
+    [
+    { Id($) },
+    { $.1, $.2 * $.1 }
+    ],
+    [
+    { Id($) },
+    { $.2, $.1 * $.2 }
+    ]
+    ]
+
+
+The `GeneratingEdges` function returns a generating set but not necessarily a minimal one. In a
+future version of `IHecke`, it will only return minimal generating sets for the cell order.
+
+
 <!-- END TEST Cells -->
 
 ## The p-canonical basis
@@ -621,11 +651,10 @@ The cell indices (`LCell #2` for example) are not meaningful.
 
 # TODO
 
-- (High priority) Better handling of the cell graph
-  - Perform transitive reduction, so that it is in a canonical form.
-  - Make it available to the user (interface design), and an example involving GraphVis.
 - (High priority) Spherical and Antispherical left/right modules.
-- (Cleanup) Document the use of `eq` on `AlgIHkeBase`.
+  - Standard basis implemented, action seems to be working.
+  - Implement canonical bases, and think about what to do for the p-canonical bases.
+- (Low priority) Perform transitive reduction on the cell graph.
 - (Low priority) Allow more custom formatting of the output, such as choosing basis names, and
     choosing formatting of Coxeter group elements.
 - (Low priority) Performance:

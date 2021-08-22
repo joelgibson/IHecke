@@ -18,7 +18,7 @@ intrinsic IHeckeAlgebra(W::GrpFPCox) -> AlgIHke
 end intrinsic;
 
 intrinsic 'eq'(algA::AlgIHke, algB::AlgIHke) -> BoolElt
-{Two Hecke algebras are "equal" if the Coxeter matrices of their Coxeter groups are equal.}
+{Hecke algebras compare equal if their Coxeter matrices (and hence groups) compare equal.}
     return algA`CoxeterMatrix eq algB`CoxeterMatrix;
 end intrinsic;
 
