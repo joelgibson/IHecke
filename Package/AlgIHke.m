@@ -1,7 +1,8 @@
-import "Base.m":
-    _LaurentPolyRing,
-    _IHkeFModInit;
+import "Base.m": _IHkeFModInit;
 
+// The base ring we work over for the Hecke algebra is the Laurent polynomials.
+// In Magma, a built-in structure that does this is the Laurent series.
+_LaurentPolyRing<v> := LaurentSeriesRing(Integers());
 
 ////////////////////
 // The Hecke algebra

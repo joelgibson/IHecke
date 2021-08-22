@@ -1,7 +1,3 @@
-import "Base.m":
-    _LaurentPolyRing,
-    _v;
-
 import "EltIHke.m": _AddScaled, _RemoveZeros, _AddScaledTerm;
 import "AlgIHkeBase.m": _AlgIHkeBaseInit;
 
@@ -39,6 +35,7 @@ end intrinsic;
 // In the antispherical or spherical modules, I is the parabolic quotient, and eig is (-v) or v^-1.
 function _RightMultStdGen(elt, s, I, eig)
     W := CoxeterGroup(Parent(elt));
+    v := BaseRing(Parent(elt)).1;
     terms := AssociativeArray();
     for w -> coeff in elt`Terms do
         ws := w * (W.s);
@@ -48,7 +45,7 @@ function _RightMultStdGen(elt, s, I, eig)
             _AddScaledTerm(~terms, ws, coeff);
         else
             _AddScaledTerm(~terms, ws, coeff);
-            _AddScaledTerm(~terms, w, (_v^-1 - _v) * coeff);
+            _AddScaledTerm(~terms, w, (v^-1 - v) * coeff);
         end if;
     end for;
     _RemoveZeros(~terms);
@@ -80,12 +77,13 @@ function _RightMultStdGenInv(elt, s)
     assert ISA(Type(Parent(elt)), AlgIHkeStd);
 
     W := CoxeterGroup(Parent(elt));
+    v := BaseRing(Parent(elt)).1;
     terms := AssociativeArray();
     for w -> coeff in elt`Terms do
         ws := w * (W.s);
         if #w lt #ws then
             _AddScaledTerm(~terms, ws, coeff);
-            _AddScaledTerm(~terms, w, (_v - _v^-1) * coeff);
+            _AddScaledTerm(~terms, w, (v - v^-1) * coeff);
         else
             _AddScaledTerm(~terms, ws, coeff);
         end if;
@@ -117,7 +115,8 @@ intrinsic _EltIHkeBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
 {The bar involution on elt, mapping p(v)H(w) to p(v^-1)H(w^-1)^-1.}
     assert H eq Parent(elt);
 
-    twist := hom<_LaurentPolyRing -> _LaurentPolyRing | _v^-1>;
+    R := BaseRing(H);
+    twist := hom<R -> R | (R.1)^-1>;
     terms := AssociativeArray(CoxeterGroup(H));
     for w -> coeff in elt`Terms do
         _AddScaled(~terms, _BarInvolutionStd(H, w)`Terms, twist(coeff));
@@ -158,11 +157,12 @@ intrinsic _IHkeProtMult(aH::ASModIHkeStd, asElt::EltIHke, H::AlgIHkeStd, hElt::E
     require Parent(aH)`CoxeterMatrix eq Parent(H)`CoxeterMatrix: "incompatible module";
 
     I := Parabolic(Parent(aH));
+    v := BaseRing(aH).1;
     acc := AssociativeArray();
     for w -> coeff in hElt`Terms do
         piece := asElt;
         for s in Eltseq(w) do
-            piece := _RightMultStdGen(piece, s, I, -_v);
+            piece := _RightMultStdGen(piece, s, I, -v);
         end for;
         _AddScaled(~acc, piece`Terms, coeff);
     end for;
@@ -202,11 +202,12 @@ intrinsic _IHkeProtMult(sH::SModIHkeStd, sElt::EltIHke, H::AlgIHkeStd, hElt::Elt
     require Parent(sH)`CoxeterMatrix eq Parent(H)`CoxeterMatrix: "incompatible module";
 
     I := Parabolic(Parent(sH));
+    v := BaseRing(sH).1;
     acc := AssociativeArray();
     for w -> coeff in hElt`Terms do
         piece := sElt;
         for s in Eltseq(w) do
-            piece := _RightMultStdGen(piece, s, I, _v^-1);
+            piece := _RightMultStdGen(piece, s, I, v^-1);
         end for;
         _AddScaled(~acc, piece`Terms, coeff);
     end for;

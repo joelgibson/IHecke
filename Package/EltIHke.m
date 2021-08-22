@@ -1,7 +1,3 @@
-import "Base.m":
-    _LaurentPolyRing,
-    _v;
-
 // An EltIHke is a formal Laurent-polynomial-linear combination of Coxeter group elements. The
 // interpretation of this linear combination depends on what the Parent structure is: it is either
 // a type inheriting from AlgIHkeBase (a basis in the Hecke algebra), or ModIHke (a basis in a spherical
@@ -54,7 +50,7 @@ group element being rendered as 'id'. Zero is printed as (0)H(id).}
     symbol := BasisSymbol(elt`Parent);
     keys := Sort(Setseq(Keys(elt`Terms)));
     if IsZero(elt) then
-        printf "(%o)%o(%o)", _LaurentPolyRing!0, symbol, FmtElt(CoxeterGroup(elt`Parent).0);
+        printf "(%o)%o(%o)", 0, symbol, FmtElt(CoxeterGroup(elt`Parent).0);
     else
         printf Join([
                 Sprintf("(%o)%o(%o)", elt`Terms[key], symbol, FmtElt(key))
@@ -73,7 +69,7 @@ intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt) -> RngElt
     if IsDefined(elt`Terms, w) then
         return elt`Terms[w];
     else
-        return _LaurentPolyRing ! 0;
+        return BaseRing(Parent(elt)) ! 0;
     end if;
 end intrinsic;
 
@@ -283,7 +279,7 @@ intrinsic ReadEltIHke(parent::., eltStr::MonStgElt) -> EltIHke
 {Read a printed Hecke element. The symbol used for printing the basis ("H", "C", etc) are ignored,
  and instead the given parent is used as the basis in which to interpret the string.}
     W := CoxeterGroup(parent);
-    v := _v; // Needed for evalling the coefficient.
+    v := BaseRing(parent).1; // Needed for evalling the coefficient.
     terms := AssociativeArray(W);
     line := eltStr;
     while true do

@@ -1,6 +1,3 @@
-import "Base.m":
-    _LaurentPolyRing,
-    _v;
 import "EltIHke.m":
     _AddScaled,
     _RemoveZeros,
@@ -43,15 +40,16 @@ function _RightMultCanGen(elt, s)
     assert ISA(Type(Parent(elt)), AlgIHkeStd);
 
     W := CoxeterGroup(Parent(elt));
+    v := BaseRing(Parent(elt)).1;
     terms := AssociativeArray();
     for w -> coeff in elt`Terms do
         ws := w * (W.s);
         if #w lt #ws then
             _AddScaledTerm(~terms, ws, coeff);
-            _AddScaledTerm(~terms, w, _v * coeff);
+            _AddScaledTerm(~terms, w, v * coeff);
         else
             _AddScaledTerm(~terms, ws, coeff);
-            _AddScaledTerm(~terms, w, _v^-1 * coeff);
+            _AddScaledTerm(~terms, w, v^-1 * coeff);
         end if;
     end for;
     _RemoveZeros(~terms);
@@ -131,7 +129,7 @@ intrinsic _IHkeProtToBasis(C::AlgIHkeCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltI
 
     W := CoxeterGroup(H);
     terms := AssociativeArray(W);
-    terms[w] := _LaurentPolyRing ! 1;
+    terms[w] := BaseRing(C) ! 1;
     Cw := _IHkeProtToBasis(H, C, w);
     for u -> coeff in Cw`Terms do
         if u eq w then
@@ -156,7 +154,8 @@ intrinsic _IHkeProtBar(C::AlgIHkeCan, elt::EltIHke) -> EltIHke
 {The bar involution of elt, fixing each basis element and twisting scalars by by v -> v^-1.}
     assert C eq Parent(elt);
 
-    twist := hom<_LaurentPolyRing -> _LaurentPolyRing | _v^-1>;
+    R := BaseRing(C);
+    twist := hom<R -> R | (R.1)^-1>;
     terms := AssociativeArray(CoxeterGroup(C));
     for w -> coeff in elt`Terms do
         terms[w] := twist(coeff);
