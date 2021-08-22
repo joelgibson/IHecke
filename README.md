@@ -182,7 +182,7 @@ the standard basis.
     Iwahori-Hecke algebra of type B4
     > H := IHeckeAlgebraStd(HAlg);
     > H;
-    Standard basis of Hecke algebra for Coxeter group of type B4, symbol H
+    Standard basis of Iwahori-Hecke algebra of type B4, symbol H
 
 A basis object like `H` models the Hecke algebra *together with a choice of basis*. Elements of the
 basis can be created in two ways. The first is by using the `.` operator, which manufactures basis
@@ -208,7 +208,7 @@ order to turn a list like `[1, 1]` into a product of *algebra* generators `H.1 *
 [reduction operator](http://magma.maths.usyd.edu.au/magma/handbook/text/117#998) `&*` together with
 a list comprehension:
 
-    > H.[1, 1]
+    > H.[1, 1];
     (1)H(id)
     > &*[H.i : i in [1, 1]];
     (v^-1 - v)H(1) + (1)H(id)
@@ -235,7 +235,7 @@ The canonical basis is created using `IHeckeAlgebraCan` on the parent Hecke alge
 
     > C := IHeckeAlgebraCan(HAlg);
     > C;
-    Canonical basis of Hecke algebra for Coxeter group of type B4, symbol C
+    Canonical basis of Iwahori-Hecke algebra of type B4, symbol C
 
 Elements of the canonical basis can be created using the same `.` and `!` operators as in the
 standard basis:
@@ -362,9 +362,9 @@ an S3 example:
     > C := IHeckeAlgebraCan(HAlg);
     > left, right, twoSided := Cells(C);
     > left, right, twoSided;
-    4 Left cells of Canonical basis of Hecke algebra for Coxeter group of type A2, symbol C
-    4 Right cells of Canonical basis of Hecke algebra for Coxeter group of type A2, symbol C
-    3 Two-sided cells of Canonical basis of Hecke algebra for Coxeter group of type A2, symbol C
+    4 Left cells of Canonical basis of Iwahori-Hecke algebra of type A2, symbol C
+    4 Right cells of Canonical basis of Iwahori-Hecke algebra of type A2, symbol C
+    3 Two-sided cells of Canonical basis of Iwahori-Hecke algebra of type A2, symbol C
 
 Each of `left`, `right`, and `twoSided` is a bundle of information about the computed cells. The
 partition can be extracted by using `Components`:
@@ -453,8 +453,10 @@ modules only.
 
 In order to create the antispherical or spherical module, set up a Hecke algebra and bases as usual:
 
+<!-- BEGIN TEST Antispherical -->
+
     $ magma
-    > AttachSpec("IHecke.spec");
+    > AttachSpec("IHecke.spec"); SetColumns(0);
     > W := CoxeterGroup(GrpFPCox, "B4");
     > HAlg := IHeckeAlgebra(W);
     > H := IHeckeAlgebraStd(HAlg);
@@ -529,7 +531,7 @@ Attempting to multiply elements of the module with itself will fail:
     Runtime error: Multiplication not defined between Antispherical module of type B4, parabolic [ 1, 2, 3 ]
     and Antispherical module of type B4, parabolic [ 1, 2, 3 ]
 
-
+<!-- END TEST Antispherical -->
 
 
 # Examples

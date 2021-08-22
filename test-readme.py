@@ -11,6 +11,9 @@ Any markdown code examples between these are read. Each must start with a comman
 of magma, i.e '$ magma'. After that, lines starting with '> ' are considered as input, and other
 lines are considered as output. All the input lines are extracted and then run through a Magma
 session in one go, then the outputs are compared.
+
+The output of this tool is a diff-like-thing (it's not the easiest thing to read, and could be
+vastly improved).
 """
 
 import re
