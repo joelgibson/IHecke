@@ -8,7 +8,7 @@ calculate left, right, and two-sided cells and p-cells.
 
 The term "Hecke algebra" is already used within Magma for a different kind of algebra, hence all of
 the names in this package are prefixed with the letter I (standing for "Iwahori"), for example the
-intrinsic`IHeckeAlgebra()` creates an element of type `AlgIHke`. Whenever we refer to the "Hecke
+intrinsic`IHeckeAlgebra()` creates an element of type `IHkeAlg`. Whenever we refer to the "Hecke
 algebra", we really mean the Iwahori-Hecke algebra.
 
 Two main goals this package has are to (A) present a neat, easy-to-use interface to the user, and
@@ -756,7 +756,7 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 
 - Conventions:
   - Switch from `ASph` and `Sph` to `ASMod` and `SMod`.
-  - Use `HAlg` whenever an argument of type `::AlgIHke` is expected.
+  - Use `HAlg` whenever an argument of type `::IHkeAlg` is expected.
 - (High priority) Spherical and Antispherical left/right modules.
   - Standard basis implemented, action seems to be working.
   - Implement canonical bases, and think about what to do for the p-canonical bases.

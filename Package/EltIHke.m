@@ -164,6 +164,15 @@ end function;
 ////////////////////////
 // R-module operations
 
+intrinsic '-'(elt::EltIHke) -> EltIHke
+{The negation of an element.}
+    terms := AssociativeArray(CoxeterGroup(Parent(elt)));
+    for w -> coeff in elt`Terms do
+        terms[w] := -coeff;
+    end for;
+    return EltIHkeConstruct(Parent(elt), terms);
+end intrinsic;
+
 intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
 {The sum of two elements. Will throw an error if adding over different free modules.}
     error if Parent(Parent(elt1)) ne Parent(Parent(elt2)),
@@ -270,37 +279,5 @@ intrinsic _IHkeProtBar(A::BasisIHke, elt::EltIHke) -> EltIHke
 {Fall-back implementation of the bar involution: convert to canonical, apply involution, convert back.}
     C := IHeckeAlgebraCan(Parent(A));
     return ChangeBasis(A, C, Bar(ChangeBasis(C, A, elt)));
-end intrinsic;
-
-
-/////////////////////
-// Input
-
-// TODO: Move to p-can stuff? Re-evaluate at least.
-intrinsic ReadEltIHke(parent::., eltStr::MonStgElt) -> EltIHke
-{Read a printed Hecke element. The symbol used for printing the basis ("H", "C", etc) are ignored,
- and instead the given parent is used as the basis in which to interpret the string.}
-    W := CoxeterGroup(parent);
-    v := BaseRing(parent).1; // Needed for evalling the coefficient.
-    terms := AssociativeArray(W);
-    line := eltStr;
-    while true do
-        ok, _, matches := Regexp("^\\(([^)]+)\\)[^(]*\\(([^)]+)\\)( [+] (.*))?$", eltStr);
-        if not ok then
-            error if not Regexp("^[ ]*$", eltStr), "Could not parse the element", line;
-        end if;
-
-        w := matches[2] eq "id"
-            select W.0
-            else W ! [StringToInteger(matches[2][i]) : i in [1..#matches[2]]];
-
-        _AddScaledTerm(~terms, w, eval matches[1]);
-        if #matches eq 2 then
-            break;
-        end if;
-        eltStr := matches[4];
-    end while;
-    _RemoveZeros(~terms);
-    return EltIHkeConstruct(parent, terms);
 end intrinsic;
 

@@ -1,17 +1,17 @@
 import "EltIHke.m": _AddScaled, _AddScaledTerm, _RemoveZeros, _IsUniTriangular;
 
 // Abstract type, used for the canonical basis of all three modules.
-declare type AlgIHkeCanBase: BasisIHke;
-declare attributes AlgIHkeCanBase:
+declare type IHkeAlgBaseCan: BasisIHke;
+declare attributes IHkeAlgBaseCan:
     CanInStdCache,
     StdInCanCache,
     MuCache,
     Para,
     Eig;
 
-// Factory function for basis types extending AlgIHkeCanBase.
+// Factory function for basis types extending IHkeAlgBaseCan.
 function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
-    assert ISA(basisType, AlgIHkeCanBase);
+    assert ISA(basisType, IHkeAlgBaseCan);
     if not IsDefined(fmod`BasisCache, basisType) then
         basis := New(basisType);
         _BasisIHkeInit(~basis, fmod, symbol, name);
@@ -133,7 +133,7 @@ function _StdToCan(H, C, w)
     return result;
 end function;
 
-intrinsic _IHkeProtBar(C::AlgIHkeCanBase, elt::EltIHke) -> EltIHke
+intrinsic _IHkeProtBar(C::IHkeAlgBaseCan, elt::EltIHke) -> EltIHke
 {The bar involution of elt, fixing each basis element and twisting scalars by by v -> v^-1.}
     assert C eq Parent(elt);
 
@@ -151,20 +151,19 @@ end intrinsic;
 ///////////////////////////////////////
 // Canonical basis of the Hecke algebra
 
-declare type AlgIHkeCan[EltIHke]: AlgIHkeCanBase;
+declare type IHkeAlgCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic IHeckeAlgebraCan(alg::AlgIHke) -> AlgIHkeCan
+intrinsic IHeckeAlgebraCan(HAlg::IHkeAlg) -> IHkeAlgCan
 {The canonical basis of the Hecke algebra.}
-    return _GetOrCreateBasis(alg, AlgIHkeCan, "C", "Canonical basis", [], 0);
+    return _GetOrCreateBasis(HAlg, IHkeAlgCan, "C", "Canonical basis", [], 0);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(H::AlgIHkeStd, C::AlgIHkeCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(H::IHkeAlgStd, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
 {Express C(w) in the standard basis.}
     return _CanToStd(H, C, w, [], 0);
 end intrinsic;
 
-
-intrinsic _IHkeProtToBasis(C::AlgIHkeCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(C::IHkeAlgCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
 {Express H(w) in the canonical basis.}
     return _StdToCan(H, C, w);
 end intrinsic;
@@ -173,12 +172,12 @@ end intrinsic;
 //////////////////////////////////////////////
 // Canonical basis of the antispherical module
 
-declare type ASModIHkeCan[EltIHke]: AlgIHkeCanBase;
+declare type ASModIHkeCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic IHeckeAntiSphericalCan(asmod::ASphIHke) -> ASModIHkeCan
+intrinsic IHeckeAntiSphericalCan(ASMod::IHkeASMod) -> ASModIHkeCan
 {The canonical basis of the right antispherical module.}
-    v := BaseRing(asmod).1;
-    return _GetOrCreateBasis(asmod, ASModIHkeCan, "aC", "Canonical basis", Parabolic(asmod), -v);
+    v := BaseRing(ASMod).1;
+    return _GetOrCreateBasis(ASMod, ASModIHkeCan, "aC", "Canonical basis", Parabolic(ASMod), -v);
 end intrinsic;
 
 intrinsic _EltIHkeValidate(aC::ASModIHkeCan, elt::EltIHke)
@@ -202,12 +201,12 @@ end intrinsic;
 //////////////////////////////////////////
 // Canonical basis of the spherical module
 
-declare type SModIHkeCan[EltIHke]: AlgIHkeCanBase;
+declare type SModIHkeCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic IHeckeSphericalCan(smod::SphIHke) -> SModIHkeCan
+intrinsic IHeckeSphericalCan(SMod::IHkeSMod) -> SModIHkeCan
 {The canonical basis of the right antispherical module.}
-    v := BaseRing(smod).1;
-    return _GetOrCreateBasis(smod, SModIHkeCan, "sC", "Canonical basis", Parabolic(smod), v^-1);
+    v := BaseRing(SMod).1;
+    return _GetOrCreateBasis(SMod, SModIHkeCan, "sC", "Canonical basis", Parabolic(SMod), v^-1);
 end intrinsic;
 
 intrinsic _EltIHkeValidate(sC::SModIHkeCan, elt::EltIHke)

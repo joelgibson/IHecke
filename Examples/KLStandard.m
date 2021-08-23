@@ -3,31 +3,31 @@
 //
 // Since this file defines intrinsics, it needs to be loaded through a Spec file (KLStandard.spec).
 
-// First a new type `AlgIHkeKLStd` needs to be created, inheriting from the abstract type BasisIHke.
+// First a new type `IHkeAlgKLStd` needs to be created, inheriting from the abstract type BasisIHke.
 // Inheriting from BasisIHke means that many operations are already defined, such as printing,
 // accessing the base ring, the equality predicate, constructing elements, and so on (see
 // Package/BasisIHke.m for the full list). We have also declared an element type of `EltIHke`, which
 // tells Magma that "elements" of this structure are of type `EltIHke`.
-declare type AlgIHkeKLStd[EltIHke]: BasisIHke;
+declare type IHkeAlgKLStd[EltIHke]: BasisIHke;
 
 // Next, define a function to create an instance of the basis from an instance of a Hecke algebra.
 // This is mostly just creating a type - however we cache the basis object so we don't have to
 // create it again later (this is not so important here, but important if bases are carrying
 // expensive-to-compute cached information that should not be recomputed).
-intrinsic IHeckeAlgebraKLStd(HAlg::AlgIHke) -> AlgIHkeKLStd
+intrinsic IHeckeAlgebraKLStd(HAlg::IHkeAlg) -> IHkeAlgKLStd
 {The Kazhdan-Lusztig-normalised standard basis of the Hecke algebra.}
     // If a basis object has already been cached, return it.
-    if IsDefined(HAlg`BasisCache, AlgIHkeKLStd) then
-        return HAlg`BasisCache[AlgIHkeKLStd];
+    if IsDefined(HAlg`BasisCache, IHkeAlgKLStd) then
+        return HAlg`BasisCache[IHkeAlgKLStd];
     end if;
 
     // Otherwise, create a new basis object. It is passed to _BasisIHkeInit(...), which initialises
     // some basic parameters.
-    T := New(AlgIHkeKLStd);
+    T := New(IHkeAlgKLStd);
     _BasisIHkeInit(~T, HAlg, "T", "KL-standard basis");
 
     // Save the new basis in the cache, and return it.
-    HAlg`BasisCache[AlgIHkeKLStd] := T;
+    HAlg`BasisCache[IHkeAlgKLStd] := T;
     return T;
 end intrinsic;
 
@@ -38,7 +38,7 @@ end intrinsic;
 // We will define the conversion from T to the standard basis H first. To do this we only need to
 // define an overload for the intrinsic `_IHkeProtToBasis` for the correct types: the '*' operation
 // will automatically call this.
-intrinsic _IHkeProtToBasis(H::AlgIHkeStd, T::AlgIHkeKLStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(H::IHkeAlgStd, T::IHkeAlgKLStd, w::GrpFPCoxElt) -> EltIHke
 {Convert from the KL-standard basis to the standard basis.}
     // To get a hold of the base ring, either H or T can be used (when this function is invoked
     // automatically, H and T will be coming from the same parent Hecke algebra, and hence hold
@@ -51,7 +51,7 @@ intrinsic _IHkeProtToBasis(H::AlgIHkeStd, T::AlgIHkeKLStd, w::GrpFPCoxElt) -> El
 end intrinsic;
 
 // The basis conversion in the other direction is just as simple.
-intrinsic _IHkeProtToBasis(T::AlgIHkeKLStd, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(T::IHkeAlgKLStd, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
 {Convert from the standard basis to the KL-standard basis.}
     v := BaseRing(H).1;
     return T.w * v^(#w);

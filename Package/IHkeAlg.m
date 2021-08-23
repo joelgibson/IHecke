@@ -1,5 +1,3 @@
-import "FModIHke.m": _FModIHkeInit;
-
 // The base ring we work over for the Hecke algebra is the Laurent polynomials.
 // In Magma, a built-in structure that does this is the Laurent series.
 _LaurentPolyRing<v> := LaurentSeriesRing(Integers());
@@ -7,36 +5,36 @@ _LaurentPolyRing<v> := LaurentSeriesRing(Integers());
 ////////////////////
 // The Hecke algebra
 
-declare type AlgIHke: FModIHke;
+declare type IHkeAlg: FModIHke;
 
-intrinsic IHeckeAlgebra(W::GrpFPCox) -> AlgIHke
+intrinsic IHeckeAlgebra(W::GrpFPCox) -> IHkeAlg
 {Create a new Hecke algebra.}
-    alg := New(AlgIHke);
+    HAlg := New(IHkeAlg);
     name := Sprintf("Iwahori-Hecke algebra of type %o", CartanName(W));
-    _FModIHkeInit(~alg, _LaurentPolyRing, name, W);
-    return alg;
+    _FModIHkeInit(~HAlg, _LaurentPolyRing, name, W);
+    return HAlg;
 end intrinsic;
 
-intrinsic 'eq'(algA::AlgIHke, algB::AlgIHke) -> BoolElt
+intrinsic 'eq'(HAlg1::IHkeAlg, HAlg2::IHkeAlg) -> BoolElt
 {Hecke algebras compare equal if their Coxeter matrices (and hence groups) compare equal.}
-    return algA`CoxeterMatrix eq algB`CoxeterMatrix;
+    return HAlg2`CoxeterMatrix eq HAlg2`CoxeterMatrix;
 end intrinsic;
 
-intrinsic DefaultBasis(alg::AlgIHke) -> AlgIHkeStd
+intrinsic DefaultBasis(HAlg::IHkeAlg) -> IHkeAlgStd
 {}
-    return IHeckeAlgebraStd(alg);
+    return IHeckeAlgebraStd(HAlg);
 end intrinsic;
 
 
-////////////////////
+/////////////////////////////////
 // The right antispherical module
 
-declare type ASphIHke: FModIHke;
-declare attributes ASphIHke:
+declare type IHkeASMod: FModIHke;
+declare attributes IHkeASMod:
     Para;   // Subsequence of [1..Rank(W)], the generators of the parabolic subgroup.
 
 // TODO: Perhaps this should accept W as an argument rather than HAlg? Check if we need to cache anything.
-intrinsic IHeckeAntiSpherical(HAlg::AlgIHke, I::SeqEnum[RngIntElt]) -> ASphIHke
+intrinsic IHeckeAntiSpherical(HAlg::IHkeAlg, I::SeqEnum[RngIntElt]) -> IHkeASMod
 {Create the right antispherical module, with basis ^I W (minimal coset representatives for the right
  cosets of W_I in W.}
     // Normalise I and ensure that it is within bounds.
@@ -45,38 +43,38 @@ intrinsic IHeckeAntiSpherical(HAlg::AlgIHke, I::SeqEnum[RngIntElt]) -> ASphIHke
     require I subset [1..Rank(W)]:
         "Parabolic subset", I, "should be a subset of", [1..Rank(W)];
 
-    asmod := New(ASphIHke);
+    asmod := New(IHkeASMod);
     name := Sprintf("Antispherical module of type %o, parabolic %o", CartanName(W), I);
     _FModIHkeInit(~asmod, BaseRing(HAlg), name, W);
     asmod`Para := I;
     return asmod;
 end intrinsic;
 
-intrinsic 'eq'(asmodA::ASphIHke, asmodB::ASphIHke) -> BoolElt
+intrinsic 'eq'(ASMod1::IHkeASMod, ASMod2::IHkeASMod) -> BoolElt
 {}
-    return asmodA`CoxeterMatrix eq asmodB`CoxeterMatrix and asmodA`Para eq asmodB`Para;
+    return ASMod1`CoxeterMatrix eq ASMod2`CoxeterMatrix and ASMod1`Para eq ASMod2`Para;
 end intrinsic;
 
-intrinsic DefaultBasis(asmod::ASphIHke) -> ASModIHkeStd
+intrinsic DefaultBasis(ASMod::IHkeASMod) -> ASModIHkeStd
 {}
-    return IHeckeAntiSphericalStd(asmod);
+    return IHeckeAntiSphericalStd(ASMod);
 end intrinsic;
 
-intrinsic Parabolic(asmod::ASphIHke) -> SeqEnum[RngIntElt]
+intrinsic Parabolic(ASMod::IHkeASMod) -> SeqEnum[RngIntElt]
 {The parabolic generators.}
-    return asmod`Para;
+    return ASMod`Para;
 end intrinsic;
 
 
 /////////////////////////////
 // The right spherical module
 
-declare type SphIHke: FModIHke;
-declare attributes SphIHke:
+declare type IHkeSMod: FModIHke;
+declare attributes IHkeSMod:
     Para;   // Subsequence of [1..Rank(W)], the generators of the parabolic subgroup.
 
 // TODO: Perhaps this should accept W as an argument rather than HAlg? Check if we need to cache anything.
-intrinsic IHeckeSpherical(HAlg::AlgIHke, I::SeqEnum[RngIntElt]) -> SphIHke
+intrinsic IHeckeSpherical(HAlg::IHkeAlg, I::SeqEnum[RngIntElt]) -> IHkeSMod
 {Create the right spherical module, with basis ^I W (minimal coset representatives for the right
  cosets of W_I in W.}
     // Normalise I and ensure that it is within bounds.
@@ -85,24 +83,24 @@ intrinsic IHeckeSpherical(HAlg::AlgIHke, I::SeqEnum[RngIntElt]) -> SphIHke
     require I subset [1..Rank(W)]:
         "Parabolic subset", I, "should be a subset of", [1..Rank(W)];
 
-    smod := New(SphIHke);
+    smod := New(IHkeSMod);
     name := Sprintf("Spherical module of type %o, parabolic %o", CartanName(W), I);
     _FModIHkeInit(~smod, BaseRing(HAlg), name, W);
     smod`Para := I;
     return smod;
 end intrinsic;
 
-intrinsic 'eq'(smodA::SphIHke, smodB::SphIHke) -> BoolElt
+intrinsic 'eq'(SMod1::IHkeSMod, SMod2::IHkeSMod) -> BoolElt
 {}
-    return smodA`CoxeterMatrix eq smodB`CoxeterMatrix and smodA`Para eq smodB`Para;
+    return SMod1`CoxeterMatrix eq SMod2`CoxeterMatrix and SMod1`Para eq SMod2`Para;
 end intrinsic;
 
-intrinsic DefaultBasis(smod::SphIHke) -> SModIHkeStd
+intrinsic DefaultBasis(SMod::IHkeSMod) -> SModIHkeStd
 {}
-    return IHeckeSphericalStd(smod);
+    return IHeckeSphericalStd(SMod);
 end intrinsic;
 
-intrinsic Parabolic(smod::SphIHke) -> SeqEnum[RngIntElt]
+intrinsic Parabolic(SMod::IHkeSMod) -> SeqEnum[RngIntElt]
 {The parabolic generators.}
-    return smod`Para;
+    return SMod`Para;
 end intrinsic;

@@ -26,17 +26,14 @@ declare attributes FModIHke:
     BasisCache;     // An associative array mapping types to instantiations of those bases.
 
 // Initialiser, should be called for any type inheriting from FModIHke.
-procedure _FModIHkeInit(~fmod, baseRing, name, grp)
-    assert ISA(Type(baseRing), Rng);
-    assert Type(name) eq MonStgElt;
-    assert Type(grp) eq GrpFPCox;
-
+intrinsic _FModIHkeInit(~fmod::FModIHke, baseRing::Rng, name::MonStgElt, grp::GrpFPCox)
+{Initialise the common attributes of a type inheriting from FModIHke.}
     fmod`BaseRing := baseRing;
     fmod`Name := name;
     fmod`CoxeterGroup := grp;
     fmod`CoxeterMatrix := CoxeterMatrix(grp);
     fmod`BasisCache := AssociativeArray();
-end procedure;
+end intrinsic;
 
 intrinsic Print(M::FModIHke)
 {}

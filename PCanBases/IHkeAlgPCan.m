@@ -8,8 +8,8 @@ import "PCanDB.m": PCanDB;
 
 // Our "implementation" of the p-canonical basis is really just reading pre-calculated bases from a
 // file: it is a "literal" basis in the sense that the basis is just given by a lookup table.
-declare type AlgIHkePCan[EltIHke]: BasisIHke;
-declare attributes AlgIHkePCan:
+declare type IHkeAlgPCan[EltIHke]: BasisIHke;
+declare attributes IHkeAlgPCan:
     // The prime and cartan type used.
     Prime,
     CartanName,
@@ -63,7 +63,7 @@ function pCanIsDefinitelyCan(type, rank, prime)
     end if;
 end function;
 
-intrinsic IHeckeAlgebraPCan(alg::AlgIHke, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> BasisIHke
+intrinsic IHeckeAlgebraPCan(alg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> BasisIHke
 {Load a p-canonical basis from a file, or check against a list of rules to check if this p-canonical
  basis is equal to the canonical basis. If neither of these can be determined, throw an error.
 
@@ -113,7 +113,7 @@ intrinsic IHeckeAlgebraPCan(alg::AlgIHke, cartanName::MonStgElt, prime::RngIntEl
         inCan[w] := ReadEltIHke(C, matches[2]);
     end for;
 
-    basis := New(AlgIHkePCan);
+    basis := New(IHkeAlgPCan);
     _BasisIHkeInit(~basis, alg, Sprintf("p%oC", prime), Sprintf("%o-canonical basis", prime));
     basis`Prime := prime;
     basis`CartanName := cartanName;
@@ -132,7 +132,7 @@ end intrinsic;
 ////////////
 // Overrides
 
-intrinsic 'eq'(C1::AlgIHkePCan, C2::AlgIHkePCan) -> BoolElt
+intrinsic 'eq'(C1::IHkeAlgPCan, C2::IHkeAlgPCan) -> BoolElt
 {}
     return Parent(C1) eq Parent(C2) and C1`Prime eq C2`Prime and C1`CartanName eq C2`CartanName;
 end intrinsic;
@@ -145,13 +145,13 @@ end intrinsic;
 // still need to provide an explicit conversion to the standard basis, since it's the default basis
 // of the Hecke algebra.
 
-intrinsic _IHkeProtToBasis(C::AlgIHkeCan, pC::AlgIHkePCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(C::IHkeAlgCan, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
 {}
     return pC`InCan[w];
 end intrinsic;
 
 // For the reverse, use unitriangularity.
-intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, C::AlgIHkeCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
 {}
     if IsDefined(pC`FromCanCache, w) then
         return pC`FromCanCache[w];
@@ -177,14 +177,44 @@ intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, C::AlgIHkeCan, w::GrpFPCoxElt) -> El
     return result;
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(H::AlgIHkeStd, pC::AlgIHkePCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(H::IHkeAlgStd, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
 {}
     C := IHeckeAlgebraCan(Parent(pC));
     return _IHkeProtToBasisElt(H, C, _IHkeProtToBasis(C, pC, w));
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(pC::AlgIHkePCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
 {}
     C := IHeckeAlgebraCan(Parent(pC));
     return _IHkeProtToBasisElt(pC, C, _IHkeProtToBasis(C, H, w));
+end intrinsic;
+
+/////////////////////
+// Input
+
+intrinsic ReadEltIHke(B::BasisIHke, eltStr::MonStgElt) -> EltIHke
+{Read a printed Hecke element. The symbol used for printing the basis ("H", "C", etc) are ignored,
+ and instead the given parent is used as the basis in which to interpret the string.}
+    W := CoxeterGroup(B);
+    v := BaseRing(B).1; // Needed for evalling the coefficient.
+    terms := AssociativeArray(W);
+    line := eltStr;
+    while true do
+        ok, _, matches := Regexp("^\\(([^)]+)\\)[^(]*\\(([^)]+)\\)( [+] (.*))?$", eltStr);
+        if not ok then
+            error if not Regexp("^[ ]*$", eltStr), "Could not parse the element", line;
+        end if;
+
+        w := matches[2] eq "id"
+            select W.0
+            else W ! [StringToInteger(matches[2][i]) : i in [1..#matches[2]]];
+
+        _AddScaledTerm(~terms, w, eval matches[1]);
+        if #matches eq 2 then
+            break;
+        end if;
+        eltStr := matches[4];
+    end while;
+    _RemoveZeros(~terms);
+    return EltIHkeConstruct(B, terms);
 end intrinsic;

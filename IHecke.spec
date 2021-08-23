@@ -1,9 +1,9 @@
 {
     Package
     {
-        AlgIHke.m
-        AlgIHkeCan.m
-        AlgIHkeStd.m
+        IHkeAlg.m
+        IHkeAlgCan.m
+        IHkeAlgStd.m
         BasisIHke.m
         Cells.m
         EltIHke.m
@@ -12,7 +12,7 @@
     }
     PCanBases
     {
-        AlgIHkePCan.m
+        IHkeAlgPCan.m
         PCanDB.m
     }
 }

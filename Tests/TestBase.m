@@ -46,7 +46,8 @@ assert H ! 2 eq 2 * H.0;
 // Standard basis coercion from self.
 assert H ! H.[1,2] eq H.[1,2];
 
-// Standard basis support.
+// Standard basis support and arithmetic.
+assert -(-H.1) eq H.1;
 assert Support(H.1) eq {@ W.1 @};
 assert Support(H.1 - H.1) eq {@ @};
 supp, coeffs := Support(H.1 - v*H.0);

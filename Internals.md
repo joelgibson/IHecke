@@ -3,7 +3,7 @@
 A lot of thought has gone into designing the internals of this library in an "open" way, so that new
 bases and definitions can be added without having to change any existing code. I explain below how
 this is done (and for seeing an example of success, check the implementation of the p-canonical
-basis in `Package/AlgIHkePCan.m`). My hope is that I can take some of these patterns over to a
+basis in `Package/IHkeAlgPCan.m`). My hope is that I can take some of these patterns over to a
 faster language (I have Julia in mind) and implement them there.
 
 
@@ -11,11 +11,11 @@ faster language (I have Julia in mind) and implement them there.
 
 There are three "levels" of objects defined in `IHecke`.
 
-1. At the top level, an `AlgIHke` object bundles the data of a Coxeter group together with a cache
+1. At the top level, an `IHkeAlg` object bundles the data of a Coxeter group together with a cache
     for constructing bases, so that calling `IHeckeAlgebraCan(HAlg)` on the same `HAlg` object twice
     will yield the same basis object (which is relevant, since basis objects uses caches to speed up
     their operation).
-2. At the middle level we have basis objects such as `AlgIHkeStd`, `AlgIHkeCan`, and so on. These
+2. At the middle level we have basis objects such as `IHkeAlgStd`, `IHkeAlgCan`, and so on. These
     types all extend a common base type `BasisIHke`, which allows us to neatly define common
     operations and fallback methods. There is never an actual object created of type `BasisIHke`.
 3. At the bottom level we have element objects of type `EltIHke`, which is the data of a basis
@@ -31,7 +31,7 @@ calling the extensibility built out of this pattern a *protocol*.
 
 Some notes:
 
-- I tried a prototype that did not have a top level `AlgIHke` object, but making some of the
+- I tried a prototype that did not have a top level `IHkeAlg` object, but making some of the
     user-facing operations nice was hard. For example, to multiply in an arbitrary basis, the
     fallback function will convert to the standard basis, multiply there, and convert back. For this
     conversion to happen, a standard basis object needs to be "available" to the expression `x * y`,
@@ -93,7 +93,7 @@ With only these two intrinsics defined, any call to `Bar` reaches the fallback i
 When defining a new basis, the library author only needs to write a version of the `_IHkeProtBar`
 for their basis:
 
-    intrinsic _IHkeProtBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
+    intrinsic _IHkeProtBar(H::IHkeAlgStd, elt::EltIHke) -> EltIHke
     {Perform the bar involution on an element of the standard basis.}
 
 and now any time `Bar` is called on an element of the standard basis, the more specific intrinsic
@@ -121,7 +121,7 @@ replacing the two abstract types `BasisIHke` mentioned with specific bases. For 
 a change of basis from the canonical basis into the standard basis, the an intrinsic with the
 following signature should be defined:
 
-    intrinsic _IHkeProtToBasis(H::AlgIHkeStd, C::AlgIHkeCan, w::GrpFPCoxElt) -> EltIHke
+    intrinsic _IHkeProtToBasis(H::IHkeAlgStd, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
 
 When defining a new basis, the author *must* define at least a conversion from the new basis into
 either the standard or canonical basis, and a conversion from either of the standard or canonical

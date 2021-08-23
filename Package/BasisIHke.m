@@ -35,7 +35,7 @@ intrinsic Print(A::BasisIHke)
 end intrinsic;
 
 // TODO: Rename this to FreeModule.
-intrinsic Parent(A::BasisIHke) -> AlgIHke
+intrinsic Parent(A::BasisIHke) -> IHkeAlg
 {The parent Hecke algebra.}
     return A`Parent;
 end intrinsic;
