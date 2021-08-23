@@ -72,8 +72,24 @@ assert aH.0 * C.[1, 2] eq aH.[1, 2] + v*aH.1;
 assert IsZero(aH.0 * C.[2, 1]);
 assert IsZero(aH.0 * C.[2, 1, 2]);
 
+// Canonical basis creation
+aC := IHeckeAntiSphericalCan(ASMod);
+assert Sprint(aC) eq "Canonical basis of Antispherical module of type A2, parabolic [ 2 ], symbol aC";
 
-// Spherica; module creation.
+// Canonical basis element creation.
+assert aC.0 eq aC.(W.0);
+assert aC.1 eq aC.(W.1);
+assert throwsError(func< | aC.2 >);
+assert aC.[1,2] eq aC.(W.1 * W.2);
+assert throwsError(func< | aC.[2,1]>);
+assert throwsError(func< | aC.[1,2,1]>);
+
+// Canonical basis in the standard basis.
+assert aH ! aC.0 eq aH.0;
+assert aH ! aC.1 eq aH.1 + v*aH.0;
+assert aH ! aC.[1, 2] eq aH.[1, 2] + v*aH.1;
+
+// Spherical module creation.
 SMod := IHeckeSpherical(HAlg, [2]);
 
 // Module accessors
@@ -119,6 +135,52 @@ assert sH.0 * C.2 eq (v + v^-1)*sH.0;
 assert sH.0 * C.[1, 2] eq sH.[1, 2] + v*sH.1 + (1 + v^2)*sH.0;
 assert sH.0 * C.[2, 1] eq (v^-1 + v)*sH.1 + (1 + v^2)*sH.0;
 assert sH.0 * C.[2, 1, 2] eq (v + v^-1)*sH.[1,2] + (1 + v^2)*sH.1 + (v + v^3)*sH.0;
+
+// Canonical basis creation
+sC := IHeckeSphericalCan(SMod);
+assert Sprint(sC) eq "Canonical basis of Spherical module of type A2, parabolic [ 2 ], symbol sC";
+
+// Canonical basis element creation.
+assert sC.0 eq sC.(W.0);
+assert sC.1 eq sC.(W.1);
+assert throwsError(func< | sC.2 >);
+assert sC.[1,2] eq sC.(W.1 * W.2);
+assert throwsError(func< | sC.[2,1]>);
+assert throwsError(func< | sC.[1,2,1]>);
+
+// Canonical basis in the standard basis.
+assert sH ! sC.0 eq sH.0;
+assert sH ! sC.1 eq sH.1 + v*sH.0;
+assert sH ! sC.[1, 2] eq sH.[1, 2] + v*sH.1 + (1 + v^2)*sH.0;
+
+// Test self-duality of canonical bases in larger examples.
+procedure testSelfDuality(type, I)
+    W := CoxeterGroup(GrpFPCox, type);
+    HAlg := IHeckeAlgebra(W);
+
+    ASMod := IHeckeAntiSpherical(HAlg, I);
+    aH := IHeckeAntiSphericalStd(ASMod);
+    aC := IHeckeAntiSphericalCan(ASMod);
+    for w in EnumerateCoxeterGroup(W, I) do
+        assert (aH ! aC.w) eq Bar(aH ! aC.w);
+    end for;
+
+    SMod := IHeckeSpherical(HAlg, I);
+    sH := IHeckeSphericalStd(SMod);
+    sC := IHeckeSphericalCan(SMod);
+    for w in EnumerateCoxeterGroup(W, I) do
+        assert (sH ! sC.w) eq Bar(sH ! sC.w);
+    end for;
+end procedure;
+
+// A5 in B6
+testSelfDuality("B6", [1..5]);
+
+// B5 in B6
+testSelfDuality("B6", [2..6]);
+
+// D5 in E6
+testSelfDuality("E6", [2..6]);
 
 
 print "TestParaMod passed.";

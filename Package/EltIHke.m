@@ -143,6 +143,12 @@ end procedure;
 
 // termsA <- termsA + Basis(w) * scalar
 procedure _AddScaledTerm(~terms, w, scalar)
+    // Early exit is an optimisation, unnecessary for correctness. We don't want to be creating a
+    // bunch of (w -> 0) entries in the associative array only to delete them later.
+    if scalar eq 0 then
+        return;
+    end if;
+
     if IsDefined(terms, w) then
         terms[w] +:= scalar;
     else

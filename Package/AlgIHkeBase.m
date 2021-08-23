@@ -226,5 +226,5 @@ intrinsic ChangeBasis(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> EltIHke
         return ChangeBasis(A, D, ChangeBasis(D, B, elt));
     end if;
 
-    error Sprintf("No basis conversion found to (%o) from (%o)", A, B);
+    error Sprintf("No basis conversion found to (%o) from (%o), i.e. %o from %o", A, B, Type(A), Type(B));
 end intrinsic;

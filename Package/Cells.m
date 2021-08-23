@@ -69,6 +69,11 @@ intrinsic EnumerateCoxeterGroup(W::GrpFPCox: lengthBound := -1, quiet := false) 
  elements will be returned. An error will be thrown if W is infinite and lengthBound is negative.
  A warning will be issued if more than 1 million elements are enumerated, which can be suppressed
  with quiet := true.}
+    return EnumerateCoxeterGroup(W, []: lengthBound:=lengthBound, quiet:=quiet);
+end intrinsic;
+
+intrinsic EnumerateCoxeterGroup(W::GrpFPCox, I::SeqEnum[RngIntElt]: lengthBound:=-1, quiet:=false) -> SetIndx[GrpFPCoxElt]
+{The same as EnumerateCoxeterGroup, but enumerating only the I-minimal elements.}
     warningLimit := 1000000;
     error if lengthBound lt 0 and not IsCoxeterFinite(CartanName(W)),
         "Cannot enumerate an infinite group.";
@@ -85,7 +90,7 @@ intrinsic EnumerateCoxeterGroup(W::GrpFPCox: lengthBound := -1, quiet := false) 
         for w in frontier do
             for s in gens do
                 ws := w * s;
-                if #ws gt #w and ws notin newFrontier then
+                if IsMinimal(I, ws) and #ws gt #w and ws notin newFrontier then
                     Include(~newFrontier, ws);
                     Include(~elts, ws);
                 end if;

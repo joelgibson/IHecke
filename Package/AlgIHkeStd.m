@@ -72,16 +72,16 @@ end intrinsic;
 ////////////////////////////
 // Bar involution (protocol)
 
-// Right-multiply an element in the standard basis by H(s)^-1.
-function _RightMultStdGenInv(elt, s)
-    assert ISA(Type(Parent(elt)), AlgIHkeStd);
-
+// Right-multiply an element in the standard basis by H(s)^-1 = H(s) + (v - v^-1)H(id)
+function _RightMultStdGenInv(elt, s, I, eig)
     W := CoxeterGroup(Parent(elt));
     v := BaseRing(Parent(elt)).1;
     terms := AssociativeArray();
     for w -> coeff in elt`Terms do
         ws := w * (W.s);
-        if #w lt #ws then
+        if #I ne 0 and not IsMinimal(I, ws) then
+            _AddScaledTerm(~terms, w, (eig + v - v^-1) * coeff);
+        elif #w lt #ws then
             _AddScaledTerm(~terms, ws, coeff);
             _AddScaledTerm(~terms, w, (v - v^-1) * coeff);
         else
@@ -94,9 +94,7 @@ end function;
 
 // Return the bar-involution of the basis element H(w), i.e. the element H(w^-1)^-1.
 // Do this by picking a right descent s, and using that H(w^-1)^-1 = H(ws^-1)^-1 * H(s)^-1.
-function _BarInvolutionStd(H, w)
-    assert ISA(Type(H), AlgIHkeStd);
-
+function _BarInvolutionStd(H, w, I, eig)
     if IsDefined(H`BarCache, w) then
         return H`BarCache[w];
     end if;
@@ -107,11 +105,11 @@ function _BarInvolutionStd(H, w)
 
     W := CoxeterGroup(H);
     s := Rep(RightDescentSet(W, w));
-    H`BarCache[w] := _RightMultStdGenInv(_BarInvolutionStd(H, w * W.s), s);
+    H`BarCache[w] := _RightMultStdGenInv(_BarInvolutionStd(H, w * W.s, I, eig), s, I, eig);
     return H`BarCache[w];
 end function;
 
-intrinsic _EltIHkeBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
+intrinsic _IHkeProtBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
 {The bar involution on elt, mapping p(v)H(w) to p(v^-1)H(w^-1)^-1.}
     assert H eq Parent(elt);
 
@@ -119,7 +117,7 @@ intrinsic _EltIHkeBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
     twist := hom<R -> R | (R.1)^-1>;
     terms := AssociativeArray(CoxeterGroup(H));
     for w -> coeff in elt`Terms do
-        _AddScaled(~terms, _BarInvolutionStd(H, w)`Terms, twist(coeff));
+        _AddScaled(~terms, _BarInvolutionStd(H, w, [], 0)`Terms, twist(coeff));
     end for;
     _RemoveZeros(~terms);
     return EltIHkeConstruct(H, terms);
@@ -170,6 +168,20 @@ intrinsic _IHkeProtMult(aH::ASModIHkeStd, asElt::EltIHke, H::AlgIHkeStd, hElt::E
     return EltIHkeConstruct(aH, acc);
 end intrinsic;
 
+intrinsic _IHkeProtBar(H::ASModIHkeStd, elt::EltIHke) -> EltIHke
+{The bar involution on elt.}
+    assert H eq Parent(elt);
+
+    R := BaseRing(H);
+    twist := hom<R -> R | (R.1)^-1>;
+    terms := AssociativeArray(CoxeterGroup(H));
+    for w -> coeff in elt`Terms do
+        _AddScaled(~terms, _BarInvolutionStd(H, w, Parabolic(Parent(H)), -R.1)`Terms, twist(coeff));
+    end for;
+    _RemoveZeros(~terms);
+    return EltIHkeConstruct(H, terms);
+end intrinsic;
+
 
 /////////////////////////////////////////
 // Standard basis of the spherical module
@@ -213,4 +225,18 @@ intrinsic _IHkeProtMult(sH::SModIHkeStd, sElt::EltIHke, H::AlgIHkeStd, hElt::Elt
     end for;
     _RemoveZeros(~acc);
     return EltIHkeConstruct(sH, acc);
+end intrinsic;
+
+intrinsic _IHkeProtBar(H::SModIHkeStd, elt::EltIHke) -> EltIHke
+{The bar involution on elt.}
+    assert H eq Parent(elt);
+
+    R := BaseRing(H);
+    twist := hom<R -> R | (R.1)^-1>;
+    terms := AssociativeArray(CoxeterGroup(H));
+    for w -> coeff in elt`Terms do
+        _AddScaled(~terms, _BarInvolutionStd(H, w, Parabolic(Parent(H)), (R.1)^-1)`Terms, twist(coeff));
+    end for;
+    _RemoveZeros(~terms);
+    return EltIHkeConstruct(H, terms);
 end intrinsic;
