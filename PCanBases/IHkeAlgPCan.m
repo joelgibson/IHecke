@@ -163,7 +163,7 @@ intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, C::IHkeAlgCan, w::GrpFPCoxElt) -> El
 
     W := CoxeterGroup(pC);
     terms := AssociativeArray(W);
-    terms[w] := BaseRing(Parent(pC)) ! 1;
+    terms[w] := BaseRing(pC) ! 1;
     for u -> coeff in _IHkeProtToBasis(C, pC, w)`Terms do
         if u eq w then
             continue;
@@ -179,13 +179,13 @@ end intrinsic;
 
 intrinsic _IHkeProtToBasis(H::IHkeAlgStd, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
 {}
-    C := IHeckeAlgebraCan(Parent(pC));
+    C := IHeckeAlgebraCan(FreeModule(pC));
     return _IHkeProtToBasisElt(H, C, _IHkeProtToBasis(C, pC, w));
 end intrinsic;
 
 intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
 {}
-    C := IHeckeAlgebraCan(Parent(pC));
+    C := IHeckeAlgebraCan(FreeModule(pC));
     return _IHkeProtToBasisElt(pC, C, _IHkeProtToBasis(C, H, w));
 end intrinsic;
 

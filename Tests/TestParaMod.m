@@ -37,7 +37,7 @@ aH := IHeckeAntiSphericalStd(ASMod);
 
 // Standard basis accessors
 assert Sprint(aH) eq "Standard basis of Antispherical module of type A2, parabolic [ 2 ], symbol aH";
-assert Parent(aH) eq ASMod;
+assert FreeModule(aH) eq ASMod;
 assert CoxeterGroup(aH) eq W;
 assert BasisSymbol(aH) eq "aH";
 assert BasisName(aH) eq "Standard basis";
@@ -104,7 +104,7 @@ sH := IHeckeSphericalStd(SMod);
 
 // Standard basis accessors
 assert Sprint(sH) eq "Standard basis of Spherical module of type A2, parabolic [ 2 ], symbol sH";
-assert Parent(sH) eq SMod;
+assert FreeModule(sH) eq SMod;
 assert CoxeterGroup(sH) eq W;
 assert BasisSymbol(sH) eq "sH";
 assert BasisName(sH) eq "Standard basis";

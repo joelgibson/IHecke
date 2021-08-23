@@ -49,8 +49,6 @@ intrinsic CellLe(cel::CelIHke, x::GrpFPCoxElt, y::GrpFPCoxElt) -> BoolElt
     return ok;
 end intrinsic;
 
-// Experimental: returning the edges between cells. Eventually this should return the transitive
-// reduction.
 intrinsic GeneratingEdges(cel::CelIHke) -> SeqEnum[SetEnum[GrpFPCox]]
 {Return a list of edges [comp1, comp2] which generate the cell order.}
     return [ [cel`Components[Index(InitialVertex(edge))], cel`Components[Index(TerminalVertex(edge))] ]
@@ -144,8 +142,6 @@ function _CreateCel(Basis, CellType, Welts, digraph)
     return cel;
 end function;
 
-
-// User-callable, constructs all cells.
 intrinsic Cells(B::BasisIHke) -> Digraph, Digraph, Digraph
 {Return the left, right, and two-sided cells of B. Each collection of cells is returned as a
  directed acyclic graph, whose vertices are sets of Coxeter group elements, forming a partition of

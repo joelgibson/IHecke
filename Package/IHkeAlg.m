@@ -1,7 +1,3 @@
-// The base ring we work over for the Hecke algebra is the Laurent polynomials.
-// In Magma, a built-in structure that does this is the Laurent series.
-_LaurentPolyRing<v> := LaurentSeriesRing(Integers());
-
 ////////////////////
 // The Hecke algebra
 
@@ -9,9 +5,11 @@ declare type IHkeAlg: FModIHke;
 
 intrinsic IHeckeAlgebra(W::GrpFPCox) -> IHkeAlg
 {Create a new Hecke algebra.}
+    // Magma has no Laurent polynomials, but we can use the polynomial part of the series ring.
+    LPolyRing<v> := LaurentSeriesRing(Integers());
     HAlg := New(IHkeAlg);
     name := Sprintf("Iwahori-Hecke algebra of type %o", CartanName(W));
-    _FModIHkeInit(~HAlg, _LaurentPolyRing, name, W);
+    _FModIHkeInit(~HAlg, LPolyRing, name, W);
     return HAlg;
 end intrinsic;
 

@@ -55,9 +55,14 @@ group element being rendered as 'id'. Zero is printed as (0)H(id).}
     end if;
 end intrinsic;
 
-intrinsic Parent(elt::EltIHke) -> .
+intrinsic Parent(elt::EltIHke) -> BasisIHke
 {The parent structure (a type inheriting from BasisIHke or ModIHke).}
     return elt`Parent;
+end intrinsic;
+
+intrinsic FreeModule(elt::EltIHke) -> FModIHke
+{The free module to which this element belongs.}
+    return FreeModule(Parent(elt));
 end intrinsic;
 
 intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt) -> RngElt
@@ -175,8 +180,8 @@ end intrinsic;
 
 intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
 {The sum of two elements. Will throw an error if adding over different free modules.}
-    error if Parent(Parent(elt1)) ne Parent(Parent(elt2)),
-        "Cannot add in different free modules", Parent(Parent(elt1)), "and", Parent(Parent(elt2));
+    error if FreeModule(elt1) ne FreeModule(elt2),
+        "Cannot add in different free modules", FreeModule(elt1), "and", FreeModule(elt2);
 
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
@@ -193,8 +198,8 @@ end intrinsic;
 
 intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
 {The difference of two elements. Will throw an if subtracting over different free modules.}
-    error if Parent(Parent(elt1)) ne Parent(Parent(elt2)),
-        "Cannot subtract in different free modules", Parent(Parent(elt1)), "and", Parent(Parent(elt2));
+    error if FreeModule(elt1) ne FreeModule(elt2),
+        "Cannot subtract in different free modules", FreeModule(elt1), "and", FreeModule(elt2);
 
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
@@ -239,26 +244,26 @@ intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
     end if;
 
     // Convert to default basis and multiply.
-    defA := DefaultBasis(Parent(Parent(eltA)));
-    defB := DefaultBasis(Parent(Parent(eltB)));
+    defA := DefaultBasis(FreeModule(eltA));
+    defB := DefaultBasis(FreeModule(eltB));
     product := _IHkeProtMult(defA, ChangeBasis(defA, Parent(eltA), eltA), defB, ChangeBasis(defB, Parent(eltB), eltB));
 
     if Type(product) ne EltIHke then
-        error "Multiplication not defined between", Parent(Parent(eltA)), "and", Parent(Parent(eltB));
+        error "Multiplication not defined between", FreeModule(eltA), "and", FreeModule(eltB);
     end if;
 
     // Change back into either the A or B basis (we don't know which a priori, eg if this is a module action
     // rather than a multiplication). Prefer the left.
-    if Parent(Parent(product)) cmpeq Parent(Parent(eltA)) then
+    if FreeModule(product) cmpeq FreeModule(eltA) then
         return ChangeBasis(Parent(eltA), Parent(product), product);
-    elif Parent(Parent(product)) cmpeq Parent(Parent(eltB)) then
+    elif FreeModule(product) cmpeq FreeModule(eltB) then
         return ChangeBasis(Parent(eltB), Parent(product), product);
     end if;
 
     error
-        "Multiplication result in module", Parent(Parent(result)),
-        "was incompatible with either of", Parent(Parent(eltA)),
-        "or", Parent(Parent(eltB));
+        "Multiplication result in module", FreeModule(result),
+        "was incompatible with either of", FreeModule(eltA),
+        "or", FreeModule(eltB);
 end intrinsic;
 
 intrinsic _IHkeProtMult(A::BasisIHke, eltA::EltIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke

@@ -295,11 +295,13 @@ similar, returning a triple of (module, standard basis, canonical basis) for the
 and spherical modules.
 
 The basis of an element can be accessed using `Parent`, and the Hecke algebra of a basis can be
-accessed using `Parent` again:
+accessed using the `FreeModule` intrinsic on either the basis or an element:
 
     > Parent(H.1) eq H;
     true
-    > Parent(H) eq HAlg;
+    > FreeModule(H) eq HAlg;
+    true
+    > FreeModule(H.1) eq HAlg;
     true
 
 The functions `CoxeterGroup` and `BaseRing` can be called on a Hecke algebra or basis. Furthermore,
@@ -747,6 +749,8 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
   - Added example of how to display left cells using Graphviz.
   - Added example of defining a new basis.
   - Added antispherical and spherical modules.
+  - Removed the `Parent` property from bases, and replaced it with `FreeModule`. This property can
+      be accessed on a basis or element by the `FreeModule(...)` intrinsic.
 - Version 2021-08-18 (Current)
   - Initial release, supporting bases `Std`, `Can`, and `PCan` of the Hecke algebra, as well as cell
       computations.

@@ -15,7 +15,7 @@ C := IHeckeAlgebraCan(HAlg);
 
 // Canonical basis accessors
 assert Sprint(C) eq "Canonical basis of Iwahori-Hecke algebra of type B3, symbol C";
-assert Parent(C) eq HAlg;
+assert FreeModule(C) eq HAlg;
 assert CoxeterGroup(C) eq W;
 assert BasisSymbol(C) eq "C";
 assert BasisName(C) eq "Canonical basis";

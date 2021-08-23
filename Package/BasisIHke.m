@@ -6,7 +6,7 @@ import "EltIHke.m":
 
 declare type BasisIHke;
 declare attributes BasisIHke:
-    Parent,         // A free module type, i.e. an object of a type inheriting from FModIHke.
+    FreeModule,     // A free module type, i.e. an object of a type inheriting from FModIHke.
     BasisSymbol,    // A short string naming the basis, used for printing eg H(id) + H(121).
     BasisName;      // A human-readable name describing the basis.
 
@@ -17,7 +17,7 @@ declare attributes BasisIHke:
 intrinsic _BasisIHkeInit(~basis::BasisIHke, fmod::FModIHke, symbol::MonStgElt, name::MonStgElt)
 {Bases (types extending BasisIHke) should call _BasisIHkeInit to initialise common fields.}
     require Type(basis) ne BasisIHke: "BasisIHke is an abstract type, and should not be created.";
-    basis`Parent := fmod;
+    basis`FreeModule := fmod;
     basis`BasisSymbol := symbol;
     basis`BasisName := name;
 end intrinsic;
@@ -30,19 +30,18 @@ intrinsic Print(A::BasisIHke)
 {}
     printf "%o of %o, symbol %o",
         BasisName(A),
-        Name(Parent(A)),
+        Name(FreeModule(A)),
         BasisSymbol(A);
 end intrinsic;
 
-// TODO: Rename this to FreeModule.
-intrinsic Parent(A::BasisIHke) -> IHkeAlg
-{The parent Hecke algebra.}
-    return A`Parent;
+intrinsic FreeModule(A::BasisIHke) -> IHkeAlg
+{The free module for which this is a basis (the Hecke algebra, antispherical module, etc).}
+    return A`FreeModule;
 end intrinsic;
 
 intrinsic CoxeterGroup(A::BasisIHke) -> GrpFPCox
 {The underlying Coxeter group of the Hecke algebra.}
-    return CoxeterGroup(A`Parent);
+    return CoxeterGroup(A`FreeModule);
 end intrinsic;
 
 intrinsic BasisSymbol(A::BasisIHke) -> MonStgElt
@@ -57,15 +56,15 @@ end intrinsic;
 
 intrinsic BaseRing(A::BasisIHke) -> Rng
 {Return the base ring (a Laurent series ring).}
-    return BaseRing(A`Parent);
+    return BaseRing(A`FreeModule);
 end intrinsic;
 
 
 intrinsic 'eq'(A::BasisIHke, B::BasisIHke) -> BoolElt
-{By default, two bases compare equal if they have the same type, and their parent free modules
+{By default, two bases compare equal if they have the same type, and their free modules
  compare equal. Bases parameterised on some additional data (eg p-canonical bases) should override
  this intrinsic.}
-    return Type(A) eq Type(B) and Parent(A) cmpeq Parent(B);
+    return Type(A) eq Type(B) and FreeModule(A) cmpeq FreeModule(B);
 end intrinsic;
 
 intrinsic _IHkeProtToBasis(A::BasisIHke, B::BasisIHke, w::GrpFPCoxElt) -> EltIHke
@@ -153,7 +152,7 @@ intrinsic IsCoercible(A::BasisIHke, elt::RngElt) -> BoolElt, EltIHke
     end if;
 
     // Check if the default basis defines a unit.
-    def := DefaultBasis(Parent(A));
+    def := DefaultBasis(FreeModule(A));
     unit := _IHkeProtUnit(def);
     if Type(unit) eq EltIHke then
         return true, BasisChange(A, def, unit * r);
@@ -165,9 +164,8 @@ end intrinsic;
 
 intrinsic IsCoercible(A::BasisIHke, x::EltIHke) -> BoolElt, EltIHke
 {Change the basis of x into A.}
-    // Hecke algebras must be the same.
-    if Parent(A) ne Parent(Parent(x)) then
-        return false, Sprintf("Cannot coerce from %o into %o (different free modules)", Parent(Parent(x)), Parent(A));
+    if FreeModule(A) ne FreeModule(x) then
+        return false, Sprintf("Cannot coerce from %o into %o (different free modules)", FreeModule(x), FreeModule(A));
     end if;
 
     // Easy case: if x is already in the A basis, return x.
@@ -195,7 +193,7 @@ end intrinsic;
 
 intrinsic ChangeBasis(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
 {Express elt, which must be in the B basis, in the A basis.}
-    assert Parent(A) eq Parent(B);
+    assert FreeModule(A) eq FreeModule(B);
     assert B eq Parent(elt);
     W := CoxeterGroup(A);
 
@@ -211,7 +209,7 @@ intrinsic ChangeBasis(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
     end if;
 
     // Otherwise, convert via the default basis.
-    D := DefaultBasis(Parent(A));
+    D := DefaultBasis(FreeModule(A));
     if Type(_IHkeProtToBasis(A, D, W.0)) eq EltIHke and Type(_IHkeProtToBasis(D, B, W.0)) eq EltIHke then
         return ChangeBasis(A, D, ChangeBasis(D, B, elt));
     end if;

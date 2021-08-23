@@ -12,7 +12,6 @@ intrinsic ShortcutIHeckeAlgebra(type::MonStgElt) -> IHkeAlg, GrpFPCox, IHkeAlgSt
     return ShortcutIHeckeAlgebra(CoxeterGroup(GrpFPCox, type));
 end intrinsic;
 
-// TODO: Rename IHkeASMod, ASModIHkeStd, etc, to be consistent.
 intrinsic ShortcutIHeckeAntiSpherical(HAlg::IHkeAlg, I::SeqEnum[RngIntElt]) -> IHkeASMod, ASModIHkeStd, ASModIHkeCan
 {Shortcut for constructing the antispherical module, standard, and canonical bases from a Hecke algebra.}
     ASMod := IHeckeAntiSpherical(HAlg, I);

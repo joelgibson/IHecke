@@ -133,7 +133,7 @@ end intrinsic;
 
 intrinsic _EltIHkeValidate(aH::ASModIHkeStd, elt::EltIHke)
 {Only allow I-minimal elements.}
-    I := Parabolic(Parent(aH));
+    I := Parabolic(FreeModule(aH));
     error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},
         w, "is not minimal with respect to", I;
 end intrinsic;
@@ -157,7 +157,7 @@ end intrinsic;
 
 intrinsic _EltIHkeValidate(sH::SModIHkeStd, elt::EltIHke)
 {Only allow I-minimal elements.}
-    I := Parabolic(Parent(sH));
+    I := Parabolic(FreeModule(sH));
     error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},
         w, "is not minimal with respect to", I;
 end intrinsic;
