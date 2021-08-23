@@ -24,3 +24,9 @@ intrinsic ShortcutIHeckeSpherical(HAlg::IHkeAlg, I::SeqEnum[RngIntElt]) -> IHkeS
     SMod := IHeckeSpherical(HAlg, I);
     return SMod, IHeckeSphericalStd(SMod), IHeckeSphericalCan(SMod);
 end intrinsic;
+
+intrinsic ShortcutIHeckeGroupAlgebra(W::GrpFPCox) -> IHkeGrpAlg, IHkeGrpAlgStd
+{Shortcut for constructing the group algebra and its standard basis.}
+    GAlg := IHeckeGroupAlgebra(W);
+    return GAlg, StandardBasis(GAlg);
+end intrinsic;

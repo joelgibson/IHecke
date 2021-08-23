@@ -4,6 +4,7 @@
         IHkeAlg.m
         IHkeAlgCan.m
         IHkeAlgStd.m
+        IHkeGrpAlg.m
         BasisIHke.m
         Cells.m
         EltIHke.m
