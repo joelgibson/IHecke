@@ -54,10 +54,9 @@ assert Setseq(supp) eq [W.0, W.1];
 assert coeffs eq [-v, LPoly!1];
 
 // Standard basis multiplication: identity.
-elts := EnumerateCoxeterGroup(W);
-for elt in elts do
-    assert H.0 * H.elt eq H.elt;
-    assert H.elt * H.0 eq H.elt;
+for w in EnumerateCoxeterGroup(W) do
+    assert H.0 * H.w eq H.w;
+    assert H.w * H.0 eq H.w;
 end for;
 
 // Standard basis multiplication: quadratic relation.

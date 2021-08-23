@@ -1,46 +1,42 @@
-import "EltIHke.m": _AddScaled, _RemoveZeros, _AddScaledTerm;
+// This file implements the standard bases of the Hecke algebra, antispherical module, and spherical
+// module. We'll call any one of these three, considered as a right module, a "parabolic module".
+// This treats multiplication and the bar involution somewhat uniformly across the three.
+
+import "EltIHke.m": _AddScaled, _AddScaledTerm, _RemoveZeros, _IsUniTriangular;
 import "AlgIHkeBase.m": _AlgIHkeBaseInit;
 
+// Abstract type, used for the standard basis of all three modules.
+declare type IHkeStdBase: AlgIHkeBase;
+declare attributes IHkeStdBase:
+    BarCache,   // An associative array, used as a cache for the bar involution on basis elements
+    Para,       // Parabolic subset (equals [] for the full Hecke algebra)
+    Eig;        // Irrelevant for the full Hecke algebra, (-v) or (v^-1) for the anti/spherical mods
 
-//////////////////////////////////////
-// Standard basis of the Hecke algebra
-
-declare type AlgIHkeStd[EltIHke]: AlgIHkeBase;
-declare attributes AlgIHkeStd:
-    // An associative array, used as a cache for the bar involution on basis elements.
-    BarCache;
-
-intrinsic IHeckeAlgebraStd(alg::AlgIHke) -> AlgIHkeStd
-{The standard basis of the Hecke algebra.}
-    if not IsDefined(alg`BasisCache, AlgIHkeStd) then
-        basis := New(AlgIHkeStd);
-        _AlgIHkeBaseInit(~basis, alg, "H", "Standard basis");
-        basis`BarCache := AssociativeArray(CoxeterGroup(alg));
-        alg`BasisCache[AlgIHkeStd] := basis;
+// Factory function for basis types extending IHkeStdBase.
+function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
+    assert ISA(basisType, IHkeStdBase);
+    if not IsDefined(fmod`BasisCache, basisType) then
+        basis := New(basisType);
+        _AlgIHkeBaseInit(~basis, fmod, symbol, name);
+        basis`BarCache := AssociativeArray();
+        basis`Para := para;
+        basis`Eig := eig;
+        fmod`BasisCache[basisType] := basis;
     end if;
-    return alg`BasisCache[AlgIHkeStd];
-end intrinsic;
 
-intrinsic _IHkeProtUnit(H::AlgIHkeStd) -> EltIHke
-{}
-    return H.0;
-end intrinsic;
+    return fmod`BasisCache[basisType];
+end function;
 
-
-//////////////////////////////////
-// Multiplication
-
-// Right-multiply an element in the standard basis by H(s).
-// Whenever this is called for the Hecke algebra, we will have I=[] and eig is irrelevant.
-// In the antispherical or spherical modules, I is the parabolic quotient, and eig is (-v) or v^-1.
-function _RightMultStdGen(elt, s, I, eig)
-    W := CoxeterGroup(Parent(elt));
-    v := BaseRing(Parent(elt)).1;
-    terms := AssociativeArray();
-    for w -> coeff in elt`Terms do
+// (M, eltM) is an element inside a right module over the Hecke algebra (either the algebra itself,
+// or a parabolic module). Return the right action of H(s) on eltM.
+function _RightMultStdGen(M, eltM, s)
+    W := CoxeterGroup(M);
+    v := BaseRing(M).1;
+    terms := AssociativeArray(W);
+    for w -> coeff in eltM`Terms do
         ws := w * (W.s);
-        if #I ne 0 and not IsMinimal(I, ws) then
-            _AddScaledTerm(~terms, w, eig * coeff);
+        if not IsMinimal(M`Para, ws) then
+            _AddScaledTerm(~terms, w, M`Eig * coeff);
         elif #w lt #ws then
             _AddScaledTerm(~terms, ws, coeff);
         else
@@ -49,67 +45,47 @@ function _RightMultStdGen(elt, s, I, eig)
         end if;
     end for;
     _RemoveZeros(~terms);
-    return EltIHkeConstruct(Parent(elt), terms);
+    return EltIHkeConstruct(M, terms);
 end function;
 
-intrinsic _IHkeProtMult(A::AlgIHkeStd, eltA::EltIHke, B::AlgIHkeStd, eltB::EltIHke) -> EltIHke
-{Multiplication in the standard basis.}
-    require A eq B: "Parents must be equal";
-
-    acc := AssociativeArray();
-    for w -> coeff in eltB`Terms do
-        piece := eltA;
+// (M, eltM) is an element inside a right module over the Hecke algebra (either the algebra itself,
+// or a parabolic module). This function returns eltM * H(terms), where terms is interpreted as a
+// linear combination of standard basis elements of the Hecke algebra.
+function _RightAction(M, eltM, terms)
+    acc := AssociativeArray(CoxeterGroup(M));
+    for w -> coeff in terms do
+        piece := eltM;
         for s in Eltseq(w) do
-            piece := _RightMultStdGen(piece, s, [], 0);
+            piece := _RightMultStdGen(M, piece, s);
         end for;
         _AddScaled(~acc, piece`Terms, coeff);
     end for;
     _RemoveZeros(~acc);
-    return EltIHkeConstruct(A, acc);
-end intrinsic;
-
-
-////////////////////////////
-// Bar involution (protocol)
-
-// Right-multiply an element in the standard basis by H(s)^-1 = H(s) + (v - v^-1)H(id)
-function _RightMultStdGenInv(elt, s, I, eig)
-    W := CoxeterGroup(Parent(elt));
-    v := BaseRing(Parent(elt)).1;
-    terms := AssociativeArray();
-    for w -> coeff in elt`Terms do
-        ws := w * (W.s);
-        if #I ne 0 and not IsMinimal(I, ws) then
-            _AddScaledTerm(~terms, w, (eig + v - v^-1) * coeff);
-        elif #w lt #ws then
-            _AddScaledTerm(~terms, ws, coeff);
-            _AddScaledTerm(~terms, w, (v - v^-1) * coeff);
-        else
-            _AddScaledTerm(~terms, ws, coeff);
-        end if;
-    end for;
-    _RemoveZeros(~terms);
-    return EltIHkeConstruct(Parent(elt), terms);
+    return EltIHkeConstruct(M, acc);
 end function;
 
-// Return the bar-involution of the basis element H(w), i.e. the element H(w^-1)^-1.
-// Do this by picking a right descent s, and using that H(w^-1)^-1 = H(ws^-1)^-1 * H(s)^-1.
-function _BarInvolutionStd(H, w, I, eig)
-    if IsDefined(H`BarCache, w) then
-        return H`BarCache[w];
+// Return the bar-involution of the basis element M(w), i.e. the image of the element H(w^-1)^-1
+// inside the module M. (Pick a right descent s, and use H(w^-1)^-1 = H(ws^-1)^-1 * H(s)^-1).
+function _BarInvolutionStd(M, w)
+    if IsDefined(M`BarCache, w) then
+        return M`BarCache[w];
     end if;
 
     if #w eq 0 then
-        return H.0;
+        return M.0;
     end if;
 
-    W := CoxeterGroup(H);
+    W := CoxeterGroup(M);
+    v := BaseRing(M).1;
     s := Rep(RightDescentSet(W, w));
-    H`BarCache[w] := _RightMultStdGenInv(_BarInvolutionStd(H, w * W.s, I, eig), s, I, eig);
-    return H`BarCache[w];
+    bar_ws := _BarInvolutionStd(M, w * W.s);
+    bar_w := _RightMultStdGen(M, bar_ws, s) + (v - v^-1)*bar_ws;
+    assert _IsUniTriangular(bar_w`Terms, w);
+    M`BarCache[w] := bar_w;
+    return bar_w;
 end function;
 
-intrinsic _IHkeProtBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
+intrinsic _IHkeProtBar(H::IHkeStdBase, elt::EltIHke) -> EltIHke
 {The bar involution on elt, mapping p(v)H(w) to p(v^-1)H(w^-1)^-1.}
     assert H eq Parent(elt);
 
@@ -117,30 +93,43 @@ intrinsic _IHkeProtBar(H::AlgIHkeStd, elt::EltIHke) -> EltIHke
     twist := hom<R -> R | (R.1)^-1>;
     terms := AssociativeArray(CoxeterGroup(H));
     for w -> coeff in elt`Terms do
-        _AddScaled(~terms, _BarInvolutionStd(H, w, [], 0)`Terms, twist(coeff));
+        _AddScaled(~terms, _BarInvolutionStd(H, w)`Terms, twist(coeff));
     end for;
     _RemoveZeros(~terms);
     return EltIHkeConstruct(H, terms);
 end intrinsic;
 
 
+////////////////////////////////////////////
+// Standard basis of the Hecke algebra
+
+declare type AlgIHkeStd[EltIHke]: IHkeStdBase;
+
+intrinsic IHeckeAlgebraStd(alg::AlgIHke) -> AlgIHkeStd
+{The standard basis of the Hecke algebra.}
+    return _GetOrCreateBasis(alg, AlgIHkeStd, "H", "Standard basis", [], 0);
+end intrinsic;
+
+intrinsic _IHkeProtUnit(H::AlgIHkeStd) -> EltIHke
+{Unit element in the standard basis.}
+    return H.0;
+end intrinsic;
+
+intrinsic _IHkeProtMult(H1::AlgIHkeStd, elt1::EltIHke, H2::AlgIHkeStd, elt2::EltIHke) -> EltIHke
+{Multiplication inside the standard basis of the Hecke algebra.}
+    return _RightAction(H1, elt1, elt2`Terms);
+end intrinsic;
+
+
 /////////////////////////////////////////////
 // Standard basis of the antispherical module
 
-declare type ASModIHkeStd[EltIHke]: AlgIHkeBase;
-declare attributes ASModIHkeStd:
-    // An associative array, used as a cache for the bar involution on basis elements.
-    BarCache;
+declare type ASModIHkeStd[EltIHke]: IHkeStdBase;
 
 intrinsic IHeckeAntiSphericalStd(asmod::ASphIHke) -> ASModIHkeStd
-{The standard basis of the right antispherical module.}
-    if not IsDefined(asmod`BasisCache, ASModIHkeStd) then
-        basis := New(ASModIHkeStd);
-        _AlgIHkeBaseInit(~basis, asmod, "aH", "Standard basis");
-        basis`BarCache := AssociativeArray(CoxeterGroup(asmod));
-        asmod`BasisCache[ASModIHkeStd] := basis;
-    end if;
-    return asmod`BasisCache[ASModIHkeStd];
+{The standard basis of the right spherical module.}
+    v := BaseRing(asmod).1;
+    return _GetOrCreateBasis(asmod, ASModIHkeStd, "aH", "Standard basis", Parabolic(asmod), -v);
 end intrinsic;
 
 intrinsic _IHkeProtValidateElt(aH::ASModIHkeStd, elt::EltIHke)
@@ -150,56 +139,21 @@ intrinsic _IHkeProtValidateElt(aH::ASModIHkeStd, elt::EltIHke)
         w, "is not minimal with respect to", I;
 end intrinsic;
 
-intrinsic _IHkeProtMult(aH::ASModIHkeStd, asElt::EltIHke, H::AlgIHkeStd, hElt::EltIHke) -> EltIHke
+intrinsic _IHkeProtMult(M::ASModIHkeStd, eltM::EltIHke, H::AlgIHkeStd, eltH::EltIHke) -> EltIHke
 {Action of the standard basis of the Hecke algebra on the standard basis of the antispherical module.}
-    require Parent(aH)`CoxeterMatrix eq Parent(H)`CoxeterMatrix: "incompatible module";
-
-    I := Parabolic(Parent(aH));
-    v := BaseRing(aH).1;
-    acc := AssociativeArray();
-    for w -> coeff in hElt`Terms do
-        piece := asElt;
-        for s in Eltseq(w) do
-            piece := _RightMultStdGen(piece, s, I, -v);
-        end for;
-        _AddScaled(~acc, piece`Terms, coeff);
-    end for;
-    _RemoveZeros(~acc);
-    return EltIHkeConstruct(aH, acc);
-end intrinsic;
-
-intrinsic _IHkeProtBar(H::ASModIHkeStd, elt::EltIHke) -> EltIHke
-{The bar involution on elt.}
-    assert H eq Parent(elt);
-
-    R := BaseRing(H);
-    twist := hom<R -> R | (R.1)^-1>;
-    terms := AssociativeArray(CoxeterGroup(H));
-    for w -> coeff in elt`Terms do
-        _AddScaled(~terms, _BarInvolutionStd(H, w, Parabolic(Parent(H)), -R.1)`Terms, twist(coeff));
-    end for;
-    _RemoveZeros(~terms);
-    return EltIHkeConstruct(H, terms);
+    return _RightAction(M, eltM, eltH`Terms);
 end intrinsic;
 
 
 /////////////////////////////////////////
 // Standard basis of the spherical module
 
-declare type SModIHkeStd[EltIHke]: AlgIHkeBase;
-declare attributes SModIHkeStd:
-    // An associative array, used as a cache for the bar involution on basis elements.
-    BarCache;
+declare type SModIHkeStd[EltIHke]: IHkeStdBase;
 
 intrinsic IHeckeSphericalStd(smod::SphIHke) -> SModIHkeStd
 {The standard basis of the right spherical module.}
-    if not IsDefined(smod`BasisCache, SModIHkeStd) then
-        basis := New(SModIHkeStd);
-        _AlgIHkeBaseInit(~basis, smod, "sH", "Standard basis");
-        basis`BarCache := AssociativeArray(CoxeterGroup(smod));
-        smod`BasisCache[SModIHkeStd] := basis;
-    end if;
-    return smod`BasisCache[SModIHkeStd];
+    v := BaseRing(smod).1;
+    return _GetOrCreateBasis(smod, SModIHkeStd, "sH", "Standard basis", Parabolic(smod), v^-1);
 end intrinsic;
 
 intrinsic _IHkeProtValidateElt(sH::SModIHkeStd, elt::EltIHke)
@@ -209,34 +163,7 @@ intrinsic _IHkeProtValidateElt(sH::SModIHkeStd, elt::EltIHke)
         w, "is not minimal with respect to", I;
 end intrinsic;
 
-intrinsic _IHkeProtMult(sH::SModIHkeStd, sElt::EltIHke, H::AlgIHkeStd, hElt::EltIHke) -> EltIHke
+intrinsic _IHkeProtMult(M::SModIHkeStd, eltM::EltIHke, H::AlgIHkeStd, eltH::EltIHke) -> EltIHke
 {Action of the standard basis of the Hecke algebra on the standard basis of the spherical module.}
-    require Parent(sH)`CoxeterMatrix eq Parent(H)`CoxeterMatrix: "incompatible module";
-
-    I := Parabolic(Parent(sH));
-    v := BaseRing(sH).1;
-    acc := AssociativeArray();
-    for w -> coeff in hElt`Terms do
-        piece := sElt;
-        for s in Eltseq(w) do
-            piece := _RightMultStdGen(piece, s, I, v^-1);
-        end for;
-        _AddScaled(~acc, piece`Terms, coeff);
-    end for;
-    _RemoveZeros(~acc);
-    return EltIHkeConstruct(sH, acc);
-end intrinsic;
-
-intrinsic _IHkeProtBar(H::SModIHkeStd, elt::EltIHke) -> EltIHke
-{The bar involution on elt.}
-    assert H eq Parent(elt);
-
-    R := BaseRing(H);
-    twist := hom<R -> R | (R.1)^-1>;
-    terms := AssociativeArray(CoxeterGroup(H));
-    for w -> coeff in elt`Terms do
-        _AddScaled(~terms, _BarInvolutionStd(H, w, Parabolic(Parent(H)), (R.1)^-1)`Terms, twist(coeff));
-    end for;
-    _RemoveZeros(~terms);
-    return EltIHkeConstruct(H, terms);
+    return _RightAction(M, eltM, eltH`Terms);
 end intrinsic;

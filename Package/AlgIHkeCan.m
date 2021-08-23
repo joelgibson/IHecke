@@ -1,38 +1,31 @@
-import "EltIHke.m":
-    _AddScaled,
-    _RemoveZeros,
-    _AddScaledTerm,
-    _IsUniTriangular;
-import "AlgIHkeBase.m":
-    _AlgIHkeBaseInit;
+import "EltIHke.m": _AddScaled, _AddScaledTerm, _RemoveZeros, _IsUniTriangular;
+import "AlgIHkeBase.m": _AlgIHkeBaseInit;
 
-
-declare type AlgIHkeCan[EltIHke]: AlgIHkeBase;
-declare attributes AlgIHkeCan:
+// Abstract type, used for the canonical basis of all three modules.
+declare type AlgIHkeCanBase: AlgIHkeBase;
+declare attributes AlgIHkeCanBase:
     CanInStdCache,
     StdInCanCache,
-    MuCache;
+    MuCache,
+    Para,
+    Eig;
 
-
-//////////////////////////////////
-// Creation
-
-intrinsic IHeckeAlgebraCan(alg::AlgIHke) -> AlgIHkeCan
-{The canonical basis of the Hecke algebra.}
-    if not IsDefined(alg`BasisCache, AlgIHkeCan) then
-        basis := New(AlgIHkeCan);
-        _AlgIHkeBaseInit(~basis, alg, "C", "Canonical basis");
-        basis`CanInStdCache := AssociativeArray(CoxeterGroup(alg));
-        basis`StdInCanCache := AssociativeArray(CoxeterGroup(alg));
-        basis`MuCache := AssociativeArray(CoxeterGroup(alg));
-        alg`BasisCache[AlgIHkeCan] := basis;
+// Factory function for basis types extending AlgIHkeCanBase.
+function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
+    assert ISA(basisType, AlgIHkeCanBase);
+    if not IsDefined(fmod`BasisCache, basisType) then
+        basis := New(basisType);
+        _AlgIHkeBaseInit(~basis, fmod, symbol, name);
+        basis`CanInStdCache := AssociativeArray();
+        basis`StdInCanCache := AssociativeArray();
+        basis`MuCache := AssociativeArray();
+        basis`Para := para;
+        basis`Eig := eig;
+        fmod`BasisCache[basisType] := basis;
     end if;
-    return alg`BasisCache[AlgIHkeCan];
-end intrinsic;
 
-
-//////////////////////////
-// Basis conversion
+    return fmod`BasisCache[basisType];
+end function;
 
 // Assume that elt is an element written in terms of the standard basis, and right-multiply
 // by the element B(s). I is the parabolic quotient ([] if we are in the Hecke algebra), and eig
@@ -57,7 +50,6 @@ function _RightMultCanGen(elt, s, I, eig)
     return EltIHkeConstruct(Parent(elt), terms);
 end function;
 
-
 // An associative array mapping group elements u to the coefficient mu(u, w).
 function _MuCoeffs(H, C, w)
     if IsDefined(C`MuCache, w) then
@@ -81,7 +73,6 @@ function _MuCoeffs(H, C, w)
     C`MuCache[w] := mu;
     return mu;
 end function;
-
 
 // Express C(w) in the standard basis.
 function _CanToStd(H, C, w, I, eig)
@@ -143,22 +134,7 @@ function _StdToCan(H, C, w)
     return result;
 end function;
 
-intrinsic _IHkeProtToBasis(H::AlgIHkeStd, C::AlgIHkeCan, w::GrpFPCoxElt) -> EltIHke
-{Express C(w) in the standard basis.}
-    return _CanToStd(H, C, w, [], 0);
-end intrinsic;
-
-
-intrinsic _IHkeProtToBasis(C::AlgIHkeCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltIHke
-{Express H(w) in the canonical basis.}
-    return _StdToCan(H, C, w);
-end intrinsic;
-
-
-////////////////////////////
-// Bar involution (protocol)
-
-intrinsic _IHkeProtBar(C::AlgIHkeCan, elt::EltIHke) -> EltIHke
+intrinsic _IHkeProtBar(C::AlgIHkeCanBase, elt::EltIHke) -> EltIHke
 {The bar involution of elt, fixing each basis element and twisting scalars by by v -> v^-1.}
     assert C eq Parent(elt);
 
@@ -173,26 +149,37 @@ intrinsic _IHkeProtBar(C::AlgIHkeCan, elt::EltIHke) -> EltIHke
 end intrinsic;
 
 
+///////////////////////////////////////
+// Canonical basis of the Hecke algebra
+
+declare type AlgIHkeCan[EltIHke]: AlgIHkeCanBase;
+
+intrinsic IHeckeAlgebraCan(alg::AlgIHke) -> AlgIHkeCan
+{The canonical basis of the Hecke algebra.}
+    return _GetOrCreateBasis(alg, AlgIHkeCan, "C", "Canonical basis", [], 0);
+end intrinsic;
+
+intrinsic _IHkeProtToBasis(H::AlgIHkeStd, C::AlgIHkeCan, w::GrpFPCoxElt) -> EltIHke
+{Express C(w) in the standard basis.}
+    return _CanToStd(H, C, w, [], 0);
+end intrinsic;
+
+
+intrinsic _IHkeProtToBasis(C::AlgIHkeCan, H::AlgIHkeStd, w::GrpFPCoxElt) -> EltIHke
+{Express H(w) in the canonical basis.}
+    return _StdToCan(H, C, w);
+end intrinsic;
+
+
 //////////////////////////////////////////////
 // Canonical basis of the antispherical module
 
-declare type ASModIHkeCan[EltIHke]: AlgIHkeBase;
-declare attributes ASModIHkeCan:
-    CanInStdCache,
-    StdInCanCache,
-    MuCache;
+declare type ASModIHkeCan[EltIHke]: AlgIHkeCanBase;
 
 intrinsic IHeckeAntiSphericalCan(asmod::ASphIHke) -> ASModIHkeCan
 {The canonical basis of the right antispherical module.}
-    if not IsDefined(asmod`BasisCache, ASModIHkeCan) then
-        basis := New(ASModIHkeCan);
-        _AlgIHkeBaseInit(~basis, asmod, "aC", "Canonical basis");
-        basis`CanInStdCache := AssociativeArray(CoxeterGroup(asmod));
-        basis`StdInCanCache := AssociativeArray(CoxeterGroup(asmod));
-        basis`MuCache := AssociativeArray(CoxeterGroup(asmod));
-        asmod`BasisCache[ASModIHkeCan] := basis;
-    end if;
-    return asmod`BasisCache[ASModIHkeCan];
+    v := BaseRing(asmod).1;
+    return _GetOrCreateBasis(asmod, ASModIHkeCan, "aC", "Canonical basis", Parabolic(asmod), -v);
 end intrinsic;
 
 intrinsic _IHkeProtValidateElt(aC::ASModIHkeCan, elt::EltIHke)
@@ -204,9 +191,8 @@ end intrinsic;
 
 intrinsic _IHkeProtToBasis(aH::ASModIHkeStd, aC::ASModIHkeCan, w::GrpFPCoxElt) -> EltIHke
 {Express aC(w) in the standard basis.}
-    return _CanToStd(aH, aC, w, Parabolic(Parent(aC)), -BaseRing(aC).1);
+    return _CanToStd(aH, aC, w, aH`Para, aH`Eig);
 end intrinsic;
-
 
 intrinsic _IHkeProtToBasis(aC::ASModIHkeCan, aH::ASModIHkeStd, w::GrpFPCoxElt) -> EltIHke
 {Express aH(w) in the canonical basis.}
@@ -217,23 +203,12 @@ end intrinsic;
 //////////////////////////////////////////
 // Canonical basis of the spherical module
 
-declare type SModIHkeCan[EltIHke]: AlgIHkeBase;
-declare attributes SModIHkeCan:
-    CanInStdCache,
-    StdInCanCache,
-    MuCache;
+declare type SModIHkeCan[EltIHke]: AlgIHkeCanBase;
 
 intrinsic IHeckeSphericalCan(smod::SphIHke) -> SModIHkeCan
 {The canonical basis of the right antispherical module.}
-    if not IsDefined(smod`BasisCache, ASModIHkeCan) then
-        basis := New(SModIHkeCan);
-        _AlgIHkeBaseInit(~basis, smod, "sC", "Canonical basis");
-        basis`CanInStdCache := AssociativeArray(CoxeterGroup(smod));
-        basis`StdInCanCache := AssociativeArray(CoxeterGroup(smod));
-        basis`MuCache := AssociativeArray(CoxeterGroup(smod));
-        smod`BasisCache[ASModIHkeCan] := basis;
-    end if;
-    return smod`BasisCache[ASModIHkeCan];
+    v := BaseRing(smod).1;
+    return _GetOrCreateBasis(smod, SModIHkeCan, "sC", "Canonical basis", Parabolic(smod), v^-1);
 end intrinsic;
 
 intrinsic _IHkeProtValidateElt(sC::SModIHkeCan, elt::EltIHke)
@@ -247,7 +222,6 @@ intrinsic _IHkeProtToBasis(sH::SModIHkeStd, sC::SModIHkeCan, w::GrpFPCoxElt) -> 
 {Express sC(w) in the standard basis.}
     return _CanToStd(sH, sC, w, Parabolic(Parent(sC)), (BaseRing(sC).1)^-1);
 end intrinsic;
-
 
 intrinsic _IHkeProtToBasis(sC::SModIHkeCan, sH::SModIHkeStd, w::GrpFPCoxElt) -> EltIHke
 {Express sH(w) in the canonical basis.}

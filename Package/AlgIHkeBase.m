@@ -6,14 +6,9 @@ import "EltIHke.m":
 
 declare type AlgIHkeBase;
 declare attributes AlgIHkeBase:
-    // AlgIHke
-    Parent,
-
-    // A short string naming the basis, used for printing eg H(id) + H(121).
-    BasisSymbol,
-
-    // A human-readable name describing the basis.
-    BasisName;
+    Parent,         // A free module type, i.e. an object of a type inheriting from IHkeFMod.
+    BasisSymbol,    // A short string naming the basis, used for printing eg H(id) + H(121).
+    BasisName;      // A human-readable name describing the basis.
 
 
 ////////////////////

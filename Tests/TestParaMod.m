@@ -56,6 +56,9 @@ assert throwsError(func< | aH.[1,2,1]>);
 assert IsZero(aH ! 0);
 assert throwsError(func< | aH ! 1>);
 
+// Should not be able to multiply inside a right module.
+assert throwsError(func< | aH.0 * aH.0>);
+
 // "Tensor surjection" of the standard basis of the Hecke algebra onto the antispherical module.
 assert aH.0 * H.0 eq aH.0;
 assert aH.0 * H.1 eq aH.1;
@@ -119,6 +122,9 @@ assert throwsError(func< | sH.[1,2,1]>);
 // Should not be able to coerce scalars, aside from zero.
 assert IsZero(sH ! 0);
 assert throwsError(func< | sH ! 1>);
+
+// Should not be able to multiply inside a right module.
+assert throwsError(func< | sH.0 * sH.0>);
 
 // "Tensor surjection" of the standard basis of the Hecke algebra onto the spherical module.
 assert sH.0 * H.0 eq sH.0;
