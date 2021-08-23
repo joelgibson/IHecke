@@ -16,15 +16,15 @@ There are three "levels" of objects defined in `IHecke`.
     will yield the same basis object (which is relevant, since basis objects uses caches to speed up
     their operation).
 2. At the middle level we have basis objects such as `AlgIHkeStd`, `AlgIHkeCan`, and so on. These
-    types all extend a common base type `AlgIHkeBase`, which allows us to neatly define common
-    operations and fallback methods. There is never an actual object created of type `AlgIHkeBase`.
+    types all extend a common base type `BasisIHke`, which allows us to neatly define common
+    operations and fallback methods. There is never an actual object created of type `BasisIHke`.
 3. At the bottom level we have element objects of type `EltIHke`, which is the data of a basis
     object (its parent), and a map of Coxeter group elements to scalars (the linear combination).
 
 
 Defining the types in this way (especially that middle level) allows us to take full advantage of
 Magma's multiple dispatch intrinsics, so that we can define a "default" or "fallback" implementation
-of an operation using the base type `AlgIHkeBase`, but specific bases can define their own versions
+of an operation using the base type `BasisIHke`, but specific bases can define their own versions
 of these functions, which get automatically used in preference to the default or fallback. I'm
 calling the extensibility built out of this pattern a *protocol*.
 
@@ -65,7 +65,7 @@ the same basis as `elt`. However, that type signature does not mention the basis
 choose a different implementation of `Bar` depending on the basis of `elt`. To get around this, we
 define a second intrinsic:
 
-    intrinsic _IHkeProtBar(B::AlgIHkeBase, elt::EltIHke) -> EltIHke
+    intrinsic _IHkeProtBar(B::BasisIHke, elt::EltIHke) -> EltIHke
     {Fallback implementation of the bar involution.}
         return false;
     end intrinsic;
@@ -108,16 +108,16 @@ invoked on `(A, elt)`, we have `A eq Parent(elt)`.
 
 The non-coercive function for changing bases is
 
-    intrinsic ChangeBasis(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> EltIHke
+    intrinsic ChangeBasis(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
     {Express elt, which must be in the B basis, in the A basis.}
 
 The contract for calling this function is that we must have `B eq Parent(elt)` (an error will be
 thrown otherwise). In order to hook into the `ChangeBasis` function, the author should define the
 intrinsic
 
-    intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
+    intrinsic _IHkeProtToBasis(A::BasisIHke, B::BasisIHke, w::GrpFPCoxElt) -> EltIHke
 
-replacing the two abstract types `AlgIHkeBase` mentioned with specific bases. For example, to define
+replacing the two abstract types `BasisIHke` mentioned with specific bases. For example, to define
 a change of basis from the canonical basis into the standard basis, the an intrinsic with the
 following signature should be defined:
 
@@ -133,7 +133,7 @@ bases if a direct conversion from `B` into `A` is not defined by `_IHkeProtToBas
 
 The function for multiplying two elements is `'*'`, which calls the protocol function
 
-    intrinsic _IHkeProtMult(A::AlgIHkeBase, eltA::EltIHke, B::AlgIHkeBase, eltB::EltIHke) -> EltIHke
+    intrinsic _IHkeProtMult(A::BasisIHke, eltA::EltIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
 
 When `_IHkeProtMult` is called, we will have `A eq Parent(eltA)` and `B eq Parent(eltB)`. The result
 should be in the `A` basis.

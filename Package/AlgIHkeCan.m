@@ -1,8 +1,7 @@
 import "EltIHke.m": _AddScaled, _AddScaledTerm, _RemoveZeros, _IsUniTriangular;
-import "AlgIHkeBase.m": _AlgIHkeBaseInit;
 
 // Abstract type, used for the canonical basis of all three modules.
-declare type AlgIHkeCanBase: AlgIHkeBase;
+declare type AlgIHkeCanBase: BasisIHke;
 declare attributes AlgIHkeCanBase:
     CanInStdCache,
     StdInCanCache,
@@ -15,7 +14,7 @@ function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
     assert ISA(basisType, AlgIHkeCanBase);
     if not IsDefined(fmod`BasisCache, basisType) then
         basis := New(basisType);
-        _AlgIHkeBaseInit(~basis, fmod, symbol, name);
+        _BasisIHkeInit(~basis, fmod, symbol, name);
         basis`CanInStdCache := AssociativeArray();
         basis`StdInCanCache := AssociativeArray();
         basis`MuCache := AssociativeArray();
@@ -182,7 +181,7 @@ intrinsic IHeckeAntiSphericalCan(asmod::ASphIHke) -> ASModIHkeCan
     return _GetOrCreateBasis(asmod, ASModIHkeCan, "aC", "Canonical basis", Parabolic(asmod), -v);
 end intrinsic;
 
-intrinsic _IHkeProtValidateElt(aC::ASModIHkeCan, elt::EltIHke)
+intrinsic _EltIHkeValidate(aC::ASModIHkeCan, elt::EltIHke)
 {Only allow I-minimal elements.}
     I := Parabolic(Parent(aC));
     error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},
@@ -211,7 +210,7 @@ intrinsic IHeckeSphericalCan(smod::SphIHke) -> SModIHkeCan
     return _GetOrCreateBasis(smod, SModIHkeCan, "sC", "Canonical basis", Parabolic(smod), v^-1);
 end intrinsic;
 
-intrinsic _IHkeProtValidateElt(sC::SModIHkeCan, elt::EltIHke)
+intrinsic _EltIHkeValidate(sC::SModIHkeCan, elt::EltIHke)
 {Only allow I-minimal elements.}
     I := Parabolic(Parent(sC));
     error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},

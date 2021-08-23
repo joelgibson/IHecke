@@ -1,4 +1,4 @@
-import "Base.m": _IHkeFModInit;
+import "FModIHke.m": _FModIHkeInit;
 
 // The base ring we work over for the Hecke algebra is the Laurent polynomials.
 // In Magma, a built-in structure that does this is the Laurent series.
@@ -7,13 +7,13 @@ _LaurentPolyRing<v> := LaurentSeriesRing(Integers());
 ////////////////////
 // The Hecke algebra
 
-declare type AlgIHke: IHkeFMod;
+declare type AlgIHke: FModIHke;
 
 intrinsic IHeckeAlgebra(W::GrpFPCox) -> AlgIHke
 {Create a new Hecke algebra.}
     alg := New(AlgIHke);
     name := Sprintf("Iwahori-Hecke algebra of type %o", CartanName(W));
-    _IHkeFModInit(~alg, _LaurentPolyRing, name, W);
+    _FModIHkeInit(~alg, _LaurentPolyRing, name, W);
     return alg;
 end intrinsic;
 
@@ -31,7 +31,7 @@ end intrinsic;
 ////////////////////
 // The right antispherical module
 
-declare type ASphIHke: IHkeFMod;
+declare type ASphIHke: FModIHke;
 declare attributes ASphIHke:
     Para;   // Subsequence of [1..Rank(W)], the generators of the parabolic subgroup.
 
@@ -47,7 +47,7 @@ intrinsic IHeckeAntiSpherical(HAlg::AlgIHke, I::SeqEnum[RngIntElt]) -> ASphIHke
 
     asmod := New(ASphIHke);
     name := Sprintf("Antispherical module of type %o, parabolic %o", CartanName(W), I);
-    _IHkeFModInit(~asmod, BaseRing(HAlg), name, W);
+    _FModIHkeInit(~asmod, BaseRing(HAlg), name, W);
     asmod`Para := I;
     return asmod;
 end intrinsic;
@@ -71,7 +71,7 @@ end intrinsic;
 /////////////////////////////
 // The right spherical module
 
-declare type SphIHke: IHkeFMod;
+declare type SphIHke: FModIHke;
 declare attributes SphIHke:
     Para;   // Subsequence of [1..Rank(W)], the generators of the parabolic subgroup.
 
@@ -87,7 +87,7 @@ intrinsic IHeckeSpherical(HAlg::AlgIHke, I::SeqEnum[RngIntElt]) -> SphIHke
 
     smod := New(SphIHke);
     name := Sprintf("Spherical module of type %o, parabolic %o", CartanName(W), I);
-    _IHkeFModInit(~smod, BaseRing(HAlg), name, W);
+    _FModIHkeInit(~smod, BaseRing(HAlg), name, W);
     smod`Para := I;
     return smod;
 end intrinsic;

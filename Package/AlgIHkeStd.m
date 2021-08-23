@@ -3,10 +3,9 @@
 // This treats multiplication and the bar involution somewhat uniformly across the three.
 
 import "EltIHke.m": _AddScaled, _AddScaledTerm, _RemoveZeros, _IsUniTriangular;
-import "AlgIHkeBase.m": _AlgIHkeBaseInit;
 
 // Abstract type, used for the standard basis of all three modules.
-declare type IHkeStdBase: AlgIHkeBase;
+declare type IHkeStdBase: BasisIHke;
 declare attributes IHkeStdBase:
     BarCache,   // An associative array, used as a cache for the bar involution on basis elements
     Para,       // Parabolic subset (equals [] for the full Hecke algebra)
@@ -17,7 +16,7 @@ function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
     assert ISA(basisType, IHkeStdBase);
     if not IsDefined(fmod`BasisCache, basisType) then
         basis := New(basisType);
-        _AlgIHkeBaseInit(~basis, fmod, symbol, name);
+        _BasisIHkeInit(~basis, fmod, symbol, name);
         basis`BarCache := AssociativeArray();
         basis`Para := para;
         basis`Eig := eig;
@@ -132,7 +131,7 @@ intrinsic IHeckeAntiSphericalStd(asmod::ASphIHke) -> ASModIHkeStd
     return _GetOrCreateBasis(asmod, ASModIHkeStd, "aH", "Standard basis", Parabolic(asmod), -v);
 end intrinsic;
 
-intrinsic _IHkeProtValidateElt(aH::ASModIHkeStd, elt::EltIHke)
+intrinsic _EltIHkeValidate(aH::ASModIHkeStd, elt::EltIHke)
 {Only allow I-minimal elements.}
     I := Parabolic(Parent(aH));
     error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},
@@ -156,7 +155,7 @@ intrinsic IHeckeSphericalStd(smod::SphIHke) -> SModIHkeStd
     return _GetOrCreateBasis(smod, SModIHkeStd, "sH", "Standard basis", Parabolic(smod), v^-1);
 end intrinsic;
 
-intrinsic _IHkeProtValidateElt(sH::SModIHkeStd, elt::EltIHke)
+intrinsic _EltIHkeValidate(sH::SModIHkeStd, elt::EltIHke)
 {Only allow I-minimal elements.}
     I := Parabolic(Parent(sH));
     error if not forall(w){w : w -> _ in elt`Terms | IsMinimal(I, w)},

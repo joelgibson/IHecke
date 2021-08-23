@@ -22,8 +22,8 @@ def check_file(fname: str):
         if line.rstrip() != line:
             print(f"{fname}:{line_no} trailing space")
 
-        if "New(AlgIHkeBase)" in line:
-            print(f"{fname}:{line_no} new AlgIHkeBase created (abstract type should not be created)")
+        if "New(BasisIHke)" in line:
+            print(f"{fname}:{line_no} new BasisIHke created (abstract type should not be created)")
 
         if 'todo' in line.lower():
             print(f"{fname}:{line_no} TODO found: {line}")

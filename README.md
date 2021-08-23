@@ -37,6 +37,7 @@ design is discussed more at [Internals.md](Internals.md).
 - [Examples](#examples)
   * [Printing basis elements](#printing-basis-elements)
   * [Displaying cells and p-cells](#displaying-cells-and-p-cells)
+  * [Defining a new basis](#defining-a-new-basis)
 - [Changelog](#changelog)
 - [TODO](#todo)
 
@@ -278,10 +279,20 @@ elements are compared as formal linear combinations.
 
 
 
-## Operations on bases and elements
+## Common operations
 
 Before moving on, we'll list the various operations that can be done on basis objects and linear
 combinations.
+
+Firstly, there are some "shortcut" methods for creating the Hecke algebra, group, and bases all at
+once. `ShortcutIHeckeAlgebra` can be passed either a `GrpFPCox` or a string naming a Coxeter group,
+and will return the Hecke algebra, group, standard, and canonical bases.
+
+    > HAlg, W, H, C := ShortcutIHeckeAlgebra("B4");
+
+The shortcut methods `ShortcutIHeckeAntiSpherical(HAlg)` and `ShortcutIHeckeSpherical(HAlg)` are
+similar, returning a triple of (module, standard basis, canonical basis) for the antispherical
+and spherical modules.
 
 The basis of an element can be accessed using `Parent`, and the Hecke algebra of a basis can be
 accessed using `Parent` again:
@@ -561,6 +572,39 @@ Attempting to multiply elements of the module with itself will fail:
     Runtime error: Multiplication not defined between Antispherical module of type B4, parabolic [ 1, 2, 3 ]
     and Antispherical module of type B4, parabolic [ 1, 2, 3 ]
 
+The canonical basis of the Antispherical module can be created using `IHeckeAntiSphericalCan`:
+
+    > aC := IHeckeAntiSphericalCan(ASph);
+    > aC;
+    Canonical basis of Antispherical module of type B4, parabolic [ 1, 2, 3 ], symbol aC
+
+Alternatively, both bases (along with the module itself) can be created using a shortcut method:
+
+    > ASph, aH, aC := ShortcutIHeckeAntiSpherical(HAlg, [1, 2, 3]);
+
+Basis conversions between the canonical and standard bases work as expected.
+
+    > aH ! aC.[4,3,4];
+    (1)aH(434) + (v)aH(43)
+
+Furthermore, the Hecke algebra can act on the canonical basis directly (internally, this converts to
+the standard basis, performs the action, and converts back).
+
+    > aC.[4,3] * C.4;
+    (1)aC(434) + (1)aC(4)
+
+The spherical module works analagously to the antispherical module. It can be created using
+`IHeckeSpherical(HAlg, [1, 2, 3])`, with its standard and canonical bases created using
+`IHeckeSphericalStd` and `IHeckeSphericalCan` respectively. There is also a shortcut function:
+
+    > Sph, sH, sC := ShortcutIHeckeSpherical(HAlg, [1, 2, 3]);
+    > Sph;
+    Spherical module of type B4, parabolic [ 1, 2, 3 ]
+    > sH;
+    Standard basis of Spherical module of type B4, parabolic [ 1, 2, 3 ], symbol sH
+    > sC;
+    Canonical basis of Spherical module of type B4, parabolic [ 1, 2, 3 ], symbol sC
+
 <!-- END TEST Antispherical -->
 
 
@@ -639,10 +683,69 @@ After opening `g2p3.png`, you should see a graph much like one of the ones below
 The cell indices (`LCell #2` for example) are not meaningful.
 
 
+## Defining a new basis
+
+The design of `IHecke` is "open", meaning that new bases, modules, etc should be able to be defined
+by users without having to modify the package itself. This example shows how to add a new (simple)
+basis of the Hecke algebra in about 20 lines of code.
+
+The "new basis" we will define is the standard basis `T(w)` as it was defined in Kazhdan-Lusztig's
+seminal work [KL79]. Its quadratic relation is `(T(s) + 1)(T(s) - v^-2) = 0` - note that while
+[KL79] works over the indeterminate `q`, we will stick with the indeterminate `v`, using `v^-2 = q`.
+
+Defining a new basis requires defining four things: a new basis 'type', a function creating a basis
+object of that type, and then two basis conversion functions: one from the new basis to the standard
+basis, and one from the standard basis to the new basis. Have a read of the well-commented file
+[`Examples/KLStandard.m`](Examples/KLStandard.m) to see how this is done.
+
+We will demonstrate the new basis in action. Since bases are defined using intrinsics, which can
+only be loaded using `.spec` files, we will load
+[`Examples/KLStandard.spec`](Examples/KLStandard.spec) right after loading `IHecke`.
+
+<!-- BEGIN TEST KLStandard -->
+
+    $ magma
+    > AttachSpec("IHecke.spec"); SetColumns(0);
+    > AttachSpec("Examples/KLStandard.spec");
+    > HAlg, W, H, C := ShortcutIHeckeAlgebra("B4");
+
+The new basis is creating using the function defined in `Examples/KLStandard.m`:
+
+    > T := IHeckeAlgebraKLStd(HAlg);
+    > T;
+    KL-standard basis of Iwahori-Hecke algebra of type B4, symbol T
+
+Multiplication is automatically defined (behind-the-scenes, the algebra elements are changed into
+the standard basis, multiplied there, and then changed back into the `T` basis). We can check the
+quadratic relation:
+
+    > T.1 * T.1;
+    (v^-2 + -1)T(1) + (v^-2)T(id)
+
+We can examine canonical basis elements (our `C` corresponds to `C'` in [KL79]) in the `T` basis:
+
+    > T ! C.[2,1,3,2];
+    (v^4)T(2132) + (v^4)T(232) + (v^4)T(213) + (v^4)T(132) + (v^4)T(121) + (v^4)T(32) + (v^4)T(23) + (v^4)T(21) + (v^4)T(13) + (v^4)T(12) + (v^4)T(3) + (v^2 + v^4)T(2) + (v^4)T(1) + (v^2 + v^4)T(id)
+
+According to [KL79], `C'(w)` should be scaled by `v^(-#w)` in order to have the coefficients coming
+out as the original KL polynomials `P(y, w)`:
+
+    > v := BaseRing(T).1;
+    > T ! (v^-4 * C.[2,1,3,2]);
+    (1)T(2132) + (1)T(232) + (1)T(213) + (1)T(132) + (1)T(121) + (1)T(32) + (1)T(23) + (1)T(21) + (1)T(13) + (1)T(12) + (1)T(3) + (v^-2 + 1)T(2) + (1)T(1) + (v^-2 + 1)T(id)
+
+For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-2 + 1 = q + 1`.
+
+<!-- END TEST KLStandard -->
+
+
+
+
 # Changelog
 
 - Development version
   - Added example of how to display left cells using Graphviz.
+  - Added example of defining a new basis.
   - Added antispherical and spherical modules.
 - Version 2021-08-18 (Current)
   - Initial release, supporting bases `Std`, `Can`, and `PCan` of the Hecke algebra, as well as cell
@@ -651,6 +754,9 @@ The cell indices (`LCell #2` for example) are not meaningful.
 
 # TODO
 
+- Conventions:
+  - Switch from `ASph` and `Sph` to `ASMod` and `SMod`.
+  - Use `HAlg` whenever an argument of type `::AlgIHke` is expected.
 - (High priority) Spherical and Antispherical left/right modules.
   - Standard basis implemented, action seems to be working.
   - Implement canonical bases, and think about what to do for the p-canonical bases.

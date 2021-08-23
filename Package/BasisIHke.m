@@ -4,9 +4,9 @@ import "EltIHke.m":
     _AddScaledTerm;
 
 
-declare type AlgIHkeBase;
-declare attributes AlgIHkeBase:
-    Parent,         // A free module type, i.e. an object of a type inheriting from IHkeFMod.
+declare type BasisIHke;
+declare attributes BasisIHke:
+    Parent,         // A free module type, i.e. an object of a type inheriting from FModIHke.
     BasisSymbol,    // A short string naming the basis, used for printing eg H(id) + H(121).
     BasisName;      // A human-readable name describing the basis.
 
@@ -14,24 +14,19 @@ declare attributes AlgIHkeBase:
 ////////////////////
 // Initialisation
 
-// An AlgIHkeBase should never be created, but rather types extending it should be created.
-// This procedure initialises the common attributes.
-procedure _AlgIHkeBaseInit(~basis, fmod, basisSymbol, basisName)
-    assert ISA(Type(fmod), IHkeFMod);
-    assert ISA(Type(basis), AlgIHkeBase);
-    assert Type(basisSymbol) eq MonStgElt;
-    assert Type(basisName) eq MonStgElt;
-
+intrinsic _BasisIHkeInit(~basis::BasisIHke, fmod::FModIHke, symbol::MonStgElt, name::MonStgElt)
+{Bases (types extending BasisIHke) should call _BasisIHkeInit to initialise common fields.}
+    require Type(basis) ne BasisIHke: "BasisIHke is an abstract type, and should not be created.";
     basis`Parent := fmod;
-    basis`BasisSymbol := basisSymbol;
-    basis`BasisName := basisName;
-end procedure;
+    basis`BasisSymbol := symbol;
+    basis`BasisName := name;
+end intrinsic;
 
 
 /////////////////////
 // Accessor functions
 
-intrinsic Print(A::AlgIHkeBase)
+intrinsic Print(A::BasisIHke)
 {}
     printf "%o of %o, symbol %o",
         BasisName(A),
@@ -40,47 +35,47 @@ intrinsic Print(A::AlgIHkeBase)
 end intrinsic;
 
 // TODO: Rename this to FreeModule.
-intrinsic Parent(A::AlgIHkeBase) -> AlgIHke
+intrinsic Parent(A::BasisIHke) -> AlgIHke
 {The parent Hecke algebra.}
     return A`Parent;
 end intrinsic;
 
-intrinsic CoxeterGroup(A::AlgIHkeBase) -> GrpFPCox
+intrinsic CoxeterGroup(A::BasisIHke) -> GrpFPCox
 {The underlying Coxeter group of the Hecke algebra.}
     return CoxeterGroup(A`Parent);
 end intrinsic;
 
-intrinsic BasisSymbol(A::AlgIHkeBase) -> MonStgElt
+intrinsic BasisSymbol(A::BasisIHke) -> MonStgElt
 {A short string naming the basis.}
     return A`BasisSymbol;
 end intrinsic;
 
-intrinsic BasisName(A::AlgIHkeBase) -> MonStgElt
+intrinsic BasisName(A::BasisIHke) -> MonStgElt
 {A human-readable name describing the basis.}
     return A`BasisName;
 end intrinsic;
 
-intrinsic BaseRing(A::AlgIHkeBase) -> Rng
+intrinsic BaseRing(A::BasisIHke) -> Rng
 {Return the base ring (a Laurent series ring).}
     return BaseRing(A`Parent);
 end intrinsic;
 
 
-intrinsic 'eq'(A::AlgIHkeBase, B::AlgIHkeBase) -> BoolElt
+intrinsic 'eq'(A::BasisIHke, B::BasisIHke) -> BoolElt
 {By default, two bases compare equal if they have the same type, and their parent free modules
  compare equal. Bases parameterised on some additional data (eg p-canonical bases) should override
  this intrinsic.}
     return Type(A) eq Type(B) and Parent(A) cmpeq Parent(B);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(A::AlgIHkeBase, B::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
+intrinsic _IHkeProtToBasis(A::BasisIHke, B::BasisIHke, w::GrpFPCoxElt) -> EltIHke
 {Fallback function for expressing B(w) in the A basis. Bases must override this at least twice, to
  convert to and from the default basis.}
     return false;
 end intrinsic;
 
 // TODO: Re-evaluate whether this was a good choice.
-intrinsic _IHkeProtToBasisElt(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> EltIHke
+intrinsic _IHkeProtToBasisElt(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
 {Default implementation, lifting the map w -> elt to a map elt -> elt.}
     W := CoxeterGroup(A);
     if Type(_IHkeProtToBasis(A, B, W.0)) ne EltIHke then
@@ -97,7 +92,7 @@ intrinsic _IHkeProtToBasisElt(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> E
 end intrinsic;
 
 
-intrinsic _IHkeProtUnit(A::AlgIHkeBase) -> EltIHke
+intrinsic _IHkeProtUnit(A::BasisIHke) -> EltIHke
 {If A is the basis of an algebra, this should return the unit element.}
     return false;
 end intrinsic;
@@ -107,7 +102,7 @@ end intrinsic;
 //////////////////////////////
 // Creation of basis elements
 
-intrinsic '.'(A::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
+intrinsic '.'(A::BasisIHke, w::GrpFPCoxElt) -> EltIHke
 {The basis element indexed by the Coxeter group element w.}
     require Parent(w) eq CoxeterGroup(A):
         "Group element", w, "is not a member of", CoxeterGroup(A);
@@ -117,7 +112,7 @@ intrinsic '.'(A::AlgIHkeBase, w::GrpFPCoxElt) -> EltIHke
     return EltIHkeConstruct(A, terms);
 end intrinsic;
 
-intrinsic '.'(A::AlgIHkeBase, s::RngIntElt) -> EltIHke
+intrinsic '.'(A::BasisIHke, s::RngIntElt) -> EltIHke
 {The basis element indexed by the Coxeter group element W.s, equivalent to A.(W.s).}
     w := CoxeterGroup(A) . s;
     terms := AssociativeArray(CoxeterGroup(A));
@@ -125,7 +120,7 @@ intrinsic '.'(A::AlgIHkeBase, s::RngIntElt) -> EltIHke
     return EltIHkeConstruct(A, terms);
 end intrinsic;
 
-intrinsic '.'(A::AlgIHkeBase, word::SeqEnum[RngIntElt]) -> EltIHke
+intrinsic '.'(A::BasisIHke, word::SeqEnum[RngIntElt]) -> EltIHke
 {The basis element indexed by the Coxeter group word, equivalent to A.(W!word).}
     w := CoxeterGroup(A) ! word;
     terms := AssociativeArray(CoxeterGroup(A));
@@ -137,7 +132,7 @@ end intrinsic;
 ///////////
 // Coercion
 
-intrinsic IsCoercible(A::AlgIHkeBase, elt::RngElt) -> BoolElt, EltIHke
+intrinsic IsCoercible(A::BasisIHke, elt::RngElt) -> BoolElt, EltIHke
 {The unit map of the algebra: coerce a scalar to the identity multiplied by that scalar.}
     // Check that r coerces into the base ring.
     ok, r := IsCoercible(BaseRing(A), elt);
@@ -168,7 +163,7 @@ intrinsic IsCoercible(A::AlgIHkeBase, elt::RngElt) -> BoolElt, EltIHke
     return false, Sprintf("No unit map provided for", A, "to use to insert the scalar", r);
 end intrinsic;
 
-intrinsic IsCoercible(A::AlgIHkeBase, x::EltIHke) -> BoolElt, EltIHke
+intrinsic IsCoercible(A::BasisIHke, x::EltIHke) -> BoolElt, EltIHke
 {Change the basis of x into A.}
     // Hecke algebras must be the same.
     if Parent(A) ne Parent(Parent(x)) then
@@ -198,7 +193,7 @@ end intrinsic;
 // A basis type does not need to specialise the intrinsic for conversions from itself to itself,
 // this is handled below.
 
-intrinsic ChangeBasis(A::AlgIHkeBase, B::AlgIHkeBase, elt::EltIHke) -> EltIHke
+intrinsic ChangeBasis(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
 {Express elt, which must be in the B basis, in the A basis.}
     assert Parent(A) eq Parent(B);
     assert B eq Parent(elt);

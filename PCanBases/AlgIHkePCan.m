@@ -3,13 +3,12 @@ import "../Package/EltIHke.m":
     _RemoveZeros,
     _AddScaledTerm,
     _IsUniTriangular;
-import "../Package/AlgIHkeBase.m": _AlgIHkeBaseInit;
 import "PCanDB.m": PCanDB;
 
 
 // Our "implementation" of the p-canonical basis is really just reading pre-calculated bases from a
 // file: it is a "literal" basis in the sense that the basis is just given by a lookup table.
-declare type AlgIHkePCan[EltIHke]: AlgIHkeBase;
+declare type AlgIHkePCan[EltIHke]: BasisIHke;
 declare attributes AlgIHkePCan:
     // The prime and cartan type used.
     Prime,
@@ -64,7 +63,7 @@ function pCanIsDefinitelyCan(type, rank, prime)
     end if;
 end function;
 
-intrinsic IHeckeAlgebraPCan(alg::AlgIHke, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> AlgIHkeBase
+intrinsic IHeckeAlgebraPCan(alg::AlgIHke, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> BasisIHke
 {Load a p-canonical basis from a file, or check against a list of rules to check if this p-canonical
  basis is equal to the canonical basis. If neither of these can be determined, throw an error.
 
@@ -115,7 +114,7 @@ intrinsic IHeckeAlgebraPCan(alg::AlgIHke, cartanName::MonStgElt, prime::RngIntEl
     end for;
 
     basis := New(AlgIHkePCan);
-    _AlgIHkeBaseInit(~basis, alg, Sprintf("p%oC", prime), Sprintf("%o-canonical basis", prime));
+    _BasisIHkeInit(~basis, alg, Sprintf("p%oC", prime), Sprintf("%o-canonical basis", prime));
     basis`Prime := prime;
     basis`CartanName := cartanName;
     basis`InCan := inCan;

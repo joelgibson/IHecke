@@ -1,26 +1,22 @@
-// An EltIHke is a formal Laurent-polynomial-linear combination of Coxeter group elements. The
-// interpretation of this linear combination depends on what the Parent structure is: it is either
-// a type inheriting from AlgIHkeBase (a basis in the Hecke algebra), or ModIHke (a basis in a spherical
-// or antispherical module).
+// An EltIHke a formal linear combination of Coxeter group elements, along with a Parent object
+// which determines a basis. For example, (H, 1*w) would be w in the standard basis, while (C, 1*w)
+// would be w in the canonical basis.
 declare type EltIHke;
 declare attributes EltIHke:
-    // An instance of a type inheriting from AlgIHkeBase or ModIHke.
-    Parent,
-
-    // An associative array of Coxeter group elements to Laurent polynomials.
-    // This is always normalised so that there are no elements mapping to zero.
-    Terms;
+    Parent, // A basis, i.e. a type inheriting from BasisIHke.
+    Terms;  // An AssociativeArray mapping Coxeter group elements to ring elements. This array is
+            // normalised so that there are no elements mapping to zero.
 
 
 ////////////////////////////
 // Construction
 
-intrinsic _IHkeProtValidateElt(B::AlgIHkeBase, elt::EltIHke)
-{This procedure may be overridden to throw an error if elt is illegal. For example, the spherical
- and antispherical bases should only accept W_I-minimal coset representatives.}
+intrinsic _EltIHkeValidate(B::BasisIHke, elt::EltIHke)
+{Bases should override this intrinsic and throw an error if elt contains any illegal terms. For
+ example, bases for the antispherical and spherical modules should reject non-minimal elements.}
 end intrinsic;
 
-intrinsic EltIHkeConstruct(B::AlgIHkeBase, terms::Assoc) -> EltIHke
+intrinsic EltIHkeConstruct(B::BasisIHke, terms::Assoc) -> EltIHke
 {Constructor for EltIHke (only this function should ever be used).}
     // Check that zeros are normalised out.
     assert forall{w : w -> coeff in terms | coeff ne 0};
@@ -29,7 +25,7 @@ intrinsic EltIHkeConstruct(B::AlgIHkeBase, terms::Assoc) -> EltIHke
     elt := New(EltIHke);
     elt`Parent := B;
     elt`Terms := terms;
-    _IHkeProtValidateElt(B, elt);
+    _EltIHkeValidate(B, elt);
     return elt;
 end intrinsic;
 
@@ -60,7 +56,7 @@ group element being rendered as 'id'. Zero is printed as (0)H(id).}
 end intrinsic;
 
 intrinsic Parent(elt::EltIHke) -> .
-{The parent structure (a type inheriting from AlgIHkeBase or ModIHke).}
+{The parent structure (a type inheriting from BasisIHke or ModIHke).}
     return elt`Parent;
 end intrinsic;
 
@@ -256,7 +252,7 @@ intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
         "or", Parent(Parent(eltB));
 end intrinsic;
 
-intrinsic _IHkeProtMult(A::AlgIHkeBase, eltA::EltIHke, B::AlgIHkeBase, eltB::EltIHke) -> EltIHke
+intrinsic _IHkeProtMult(A::BasisIHke, eltA::EltIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
 {Fallback implementation for multiplication.}
     return false;
 end intrinsic;
@@ -270,7 +266,7 @@ intrinsic Bar(elt::EltIHke) -> EltIHke
     return _IHkeProtBar(Parent(elt), elt);
 end intrinsic;
 
-intrinsic _IHkeProtBar(A::AlgIHkeBase, elt::EltIHke) -> EltIHke
+intrinsic _IHkeProtBar(A::BasisIHke, elt::EltIHke) -> EltIHke
 {Fall-back implementation of the bar involution: convert to canonical, apply involution, convert back.}
     C := IHeckeAlgebraCan(Parent(A));
     return ChangeBasis(A, C, Bar(ChangeBasis(C, A, elt)));

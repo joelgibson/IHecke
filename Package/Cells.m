@@ -1,6 +1,6 @@
 declare type CelIHke;
 declare attributes CelIHke:
-    // The basis associated to the cells (some type extending AlgIHkeBase)
+    // The basis associated to the cells (some type extending BasisIHke)
     Basis,
 
     // The CellType is "Left", "Right", or "Two-sided".
@@ -146,7 +146,7 @@ end function;
 
 
 // User-callable, constructs all cells.
-intrinsic Cells(B::AlgIHkeBase) -> Digraph, Digraph, Digraph
+intrinsic Cells(B::BasisIHke) -> Digraph, Digraph, Digraph
 {Return the left, right, and two-sided cells of B. Each collection of cells is returned as a
  directed acyclic graph, whose vertices are sets of Coxeter group elements, forming a partition of
  the Coxeter group. The transitive closure of the graph gives the cell order.}

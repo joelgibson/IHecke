@@ -2,12 +2,13 @@
     Package
     {
         AlgIHke.m
-        AlgIHkeBase.m
         AlgIHkeCan.m
         AlgIHkeStd.m
-        Base.m
+        BasisIHke.m
         Cells.m
         EltIHke.m
+        FModIHke.m
+        Shortcuts.m
     }
     PCanBases
     {
