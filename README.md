@@ -4,15 +4,16 @@
 and canonical bases of the Hecke algebra (Using the Soergel convention, so a reader of the book
 [Introduction to Soergel Bimodules][SBim] should feel at home). In addition, it comes bundled with
 some p-canonical bases for small rank groups (all groups of rank at most 4, excluding F4), and can
-calculate left, right, and two-sided cells and p-cells.
+calculate left, right, and two-sided cells and p-cells. It also contains implementations of the
+antispherical and spherical modules (and their canonical bases), for any parabolic subgroup.
 
 Two main goals this package has are to (A) present a neat, easy-to-use interface to the user, and
 (B) have well-organised and easily-extendable internals for a package implementer. The user-facing
 design should be clear enough that it could be used by someone with minimal Magma knowledge, and
 for example could be used as an aid while reading some chapters of *Introduction to Soergel
 Bimodules*. The internal design should make it straightforward to add new bases, without having to
-change any existing code (see the implementation of the p-canonical basis in `AlhIHkePCan.m` for an
-example of this). Having outstanding performance is *not* a goal at this time, so don't expect to be
+change any existing code (see [Defining a new basis](#defining-a-new-basis) below for an example).
+Having outstanding performance is *not* a goal at this time, so don't expect to be
 able to use this package to generate Kazhdan-Lusztig polynomials for giant groups. The internal
 design is discussed more at [Internals.md](Internals.md).
 
@@ -696,8 +697,8 @@ The cell indices (`LCell #2` for example) are not meaningful.
 
 ## Defining a new basis
 
-The design of `IHecke` is "open", meaning that new bases, modules, etc should be able to be defined
-by users without having to modify the package itself. This example shows how to add a new (simple)
+The design of `IHecke` is "open", meaning that new bases, modules, etc are able to be defined by
+users without having to modify the package itself. This example shows how to add a new (simple)
 basis of the Hecke algebra in about 20 lines of code.
 
 The "new basis" we will define is the standard basis `T(w)` as it was defined in Kazhdan-Lusztig's
@@ -749,7 +750,7 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 
 <!-- END TEST KLStandard -->
 
-
+[KL79]: https://eudml.org/doc/142660
 
 
 # Changelog
