@@ -1,15 +1,10 @@
 // This file defines some "shortcut methods" for defining an algebra or module, along with important
 // bases, all at once (to simplify interpreter sessions).
 
-intrinsic ShortcutIHeckeAlgebra(W::GrpFPCox) -> IHkeAlg, GrpFPCox, IHkeAlgStd, IHkeAlgCan
+intrinsic ShortcutIHeckeAlgebra(W::GrpFPCox) -> IHkeAlg, IHkeAlgStd, IHkeAlgCan
 {Shortcut for constructing the Hecke algebra, group, standard, and canonical bases from a group.}
     HAlg := IHeckeAlgebra(W);
-    return HAlg, W, StandardBasis(HAlg), CanonicalBasis(HAlg);
-end intrinsic;
-
-intrinsic ShortcutIHeckeAlgebra(type::MonStgElt) -> IHkeAlg, GrpFPCox, IHkeAlgStd, IHkeAlgCan
-{Shortcut for constructing the Hecke algebra, group, standard, and canonical bases from a type.}
-    return ShortcutIHeckeAlgebra(CoxeterGroup(GrpFPCox, type));
+    return HAlg, StandardBasis(HAlg), CanonicalBasis(HAlg);
 end intrinsic;
 
 intrinsic ShortcutIHeckeASMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeASMod, ASModIHkeStd, ASModIHkeCan

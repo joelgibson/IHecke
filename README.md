@@ -291,10 +291,11 @@ Before moving on, we'll list the various operations that can be done on basis ob
 combinations.
 
 Firstly, there are some "shortcut" methods for creating the Hecke algebra, group, and bases all at
-once. `ShortcutIHeckeAlgebra` can be passed either a `GrpFPCox` or a string naming a Coxeter group,
-and will return the Hecke algebra, group, standard, and canonical bases.
+once. `ShortcutIHeckeAlgebra` can be passed a `GrpFPCox`, and will return the Hecke algebra,
+standard, and canonical bases.
 
-    > HAlg, W, H, C := ShortcutIHeckeAlgebra("B4");
+    > W := CoxeterGroup(GrpFPCox, "B4");
+    > HAlg, H, C := ShortcutIHeckeAlgebra(W);
 
 The shortcut methods `ShortcutIHeckeAntiSpherical(HAlg)` and `ShortcutIHeckeSpherical(HAlg)` are
 similar, returning a triple of (module, standard basis, canonical basis) for the antispherical
@@ -719,7 +720,8 @@ only be loaded using `.spec` files, we will load
     $ magma
     > AttachSpec("IHecke.spec"); SetColumns(0);
     > AttachSpec("Examples/KLStandard.spec");
-    > HAlg, W, H, C := ShortcutIHeckeAlgebra("B4");
+    > W := CoxeterGroup(GrpFPCox, "B4");
+    > HAlg, H, C := ShortcutIHeckeAlgebra(W);
 
 The new basis is creating using the function defined in `Examples/KLStandard.m`:
 
