@@ -10,8 +10,8 @@ AttachSpec("IHecke.spec");
 W := CoxeterGroup(GrpFPCox, "B3");
 HAlg := IHeckeAlgebra(W);
 LPoly<v> := BaseRing(HAlg);
-H := IHeckeAlgebraStd(HAlg);
-C := IHeckeAlgebraCan(HAlg);
+H := StandardBasis(HAlg);
+C := CanonicalBasis(HAlg);
 
 // Canonical basis accessors
 assert Sprint(C) eq "Canonical basis of Iwahori-Hecke algebra of type B3, symbol C";

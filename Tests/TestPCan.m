@@ -9,8 +9,8 @@ for cartanName in ["B2", "C3"] do
     // Loading p-canonical bases
     W := CoxeterGroup(GrpFPCox, cartanName);
     HAlg := IHeckeAlgebra(W);
-    H := IHeckeAlgebraStd(HAlg);
-    C := IHeckeAlgebraCan(HAlg);
+    H := StandardBasis(HAlg);
+    C := CanonicalBasis(HAlg);
     pC := IHeckeAlgebraPCan(HAlg, cartanName, 2: quiet := true);
 
     // p-canonical basis accessors

@@ -22,7 +22,6 @@ declare attributes FModIHke:
     Name,           // Human-readable name for the module.
     BaseRing,       // Commutative ring this module is over (Laurent polynomials, integers, ...)
     CoxeterGroup,   // Coxeter group of finitely presented type (a GrpFPCox).
-    CoxeterMatrix,  // Useful during equality or compatibility comparisons.
     BasisCache;     // An associative array mapping types to instantiations of those bases.
 
 // Initialiser, should be called for any type inheriting from FModIHke.
@@ -31,7 +30,6 @@ intrinsic _FModIHkeInit(~fmod::FModIHke, baseRing::Rng, name::MonStgElt, grp::Gr
     fmod`BaseRing := baseRing;
     fmod`Name := name;
     fmod`CoxeterGroup := grp;
-    fmod`CoxeterMatrix := CoxeterMatrix(grp);
     fmod`BasisCache := AssociativeArray();
 end intrinsic;
 

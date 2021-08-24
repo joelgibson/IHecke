@@ -1,8 +1,4 @@
-import "EltIHke.m":
-    _AddScaled,
-    _RemoveZeros,
-    _AddScaledTerm;
-
+import "EltIHke.m": _AddScaled, _AddScaledTerm, _RemoveZeros;
 
 declare type BasisIHke;
 declare attributes BasisIHke:
@@ -67,35 +63,59 @@ intrinsic 'eq'(A::BasisIHke, B::BasisIHke) -> BoolElt
     return Type(A) eq Type(B) and FreeModule(A) cmpeq FreeModule(B);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(A::BasisIHke, B::BasisIHke, w::GrpFPCoxElt) -> EltIHke
-{Fallback function for expressing B(w) in the A basis. Bases must override this at least twice, to
- convert to and from the default basis.}
+intrinsic _ToBasis(A::BasisIHke, B::BasisIHke, w::GrpFPCoxElt) -> EltIHke
+{Fallback implementation. Bases should override either this, or the EltIHke version.}
     return false;
 end intrinsic;
 
-// TODO: Re-evaluate whether this was a good choice.
-intrinsic _IHkeProtToBasisElt(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
-{Default implementation, lifting the map w -> elt to a map elt -> elt.}
+intrinsic _ToBasis(A::BasisIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
+{Fallback implementation, which uses _ToBasis(::BasisIHke, ::BasisIHKe, ::GrpFPCoxElt) if available.
+ Bases should override either this, or the GrpFPCoxElt version.}
     W := CoxeterGroup(A);
-    if Type(_IHkeProtToBasis(A, B, W.0)) ne EltIHke then
-        return false;
-    end if;
-
-
     terms := AssociativeArray(W);
-    for w -> coeff in elt`Terms do
-        _AddScaled(~terms, _IHkeProtToBasis(A, B, w)`Terms, coeff);
+    for w -> coeff in eltB`Terms do
+        summand := _ToBasis(A, B, w);
+        if Type(summand) ne EltIHke then
+            return false;
+        end if;
+        _AddScaled(~terms, summand`Terms, coeff);
     end for;
     _RemoveZeros(~terms);
     return EltIHkeConstruct(A, terms);
 end intrinsic;
 
+intrinsic ToBasis(A::BasisIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
+{Change eltB, which must be in the B basis, into the A basis.}
+    require FreeModule(A) eq FreeModule(B): "Free modules", FreeModule(A), "and", FreeModule(B), "incompatible.";
+    require B eq Parent(eltB): "The basis", B, "disagrees with the element basis", Parent(eltB);
 
-intrinsic _IHkeProtUnit(A::BasisIHke) -> EltIHke
+    // Simple case: if the bases are equal, nothing needs to be done.
+    if A eq B then return eltB; end if;
+
+    // Is there a direct basis conversion A <- B defined?
+    eltA := _ToBasis(A, B, eltB);
+    if Type(eltA) eq EltIHke then
+        error if A ne Parent(eltA), "Basis conversion output", Parent(eltA), "instead of", A;
+        return eltA;
+    end if;
+
+    // Convert via the standard basis of the free module.
+    StdBasis := StandardBasis(FreeModule(A));
+    eltStd := _ToBasis(StdBasis, B, eltB);
+    error if Type(eltStd) ne EltIHke, "No basis conversion defined for", B, "into", StdBasis;
+    error if Parent(eltStd) ne StdBasis, "Basis conversion output", Parent(eltStd), "instead of", StdBasis;
+
+    eltA := _ToBasis(A, StdBasis, eltStd);
+    error if Type(eltA) ne EltIHke, "No basis conversion defined for", StdBasis, "into", A;
+    error if Parent(eltA) ne A, "Basis conversion output", Parent(eltA), "instead of", A;
+
+    return eltA;
+end intrinsic;
+
+intrinsic _Unit(A::BasisIHke) -> EltIHke
 {If A is the basis of an algebra, this should return the unit element.}
     return false;
 end intrinsic;
-
 
 
 //////////////////////////////
@@ -103,8 +123,7 @@ end intrinsic;
 
 intrinsic '.'(A::BasisIHke, w::GrpFPCoxElt) -> EltIHke
 {The basis element indexed by the Coxeter group element w.}
-    require Parent(w) eq CoxeterGroup(A):
-        "Group element", w, "is not a member of", CoxeterGroup(A);
+    require Parent(w) eq CoxeterGroup(A): "Group element", w, "is not a member of", CoxeterGroup(A);
 
     terms := AssociativeArray(CoxeterGroup(A));
     terms[w] := BaseRing(A) ! 1;
@@ -146,14 +165,14 @@ intrinsic IsCoercible(A::BasisIHke, elt::RngElt) -> BoolElt, EltIHke
     end if;
 
     // Check if this specific basis defines a unit.
-    unit := _IHkeProtUnit(A);
+    unit := _Unit(A);
     if Type(unit) eq EltIHke then
         return true, unit * r;
     end if;
 
-    // Check if the default basis defines a unit.
-    def := DefaultBasis(FreeModule(A));
-    unit := _IHkeProtUnit(def);
+    // Check if the standard basis defines a unit.
+    def := StandardBasis(FreeModule(A));
+    unit := _Unit(def);
     if Type(unit) eq EltIHke then
         return true, BasisChange(A, def, unit * r);
     end if;
@@ -167,52 +186,5 @@ intrinsic IsCoercible(A::BasisIHke, x::EltIHke) -> BoolElt, EltIHke
     if FreeModule(A) ne FreeModule(x) then
         return false, Sprintf("Cannot coerce from %o into %o (different free modules)", FreeModule(x), FreeModule(A));
     end if;
-
-    // Easy case: if x is already in the A basis, return x.
-    if A eq Parent(x) then
-        return true, x;
-    end if;
-
-    // Otherwise, perform a basis conversion.
-    return true, ChangeBasis(A, Parent(x), x);
-end intrinsic;
-
-
-//////////////////////////
-// Basis change (protocol)
-//
-// Basis change is done by coercion, eg to put an element of the canonical basis into the standard
-// basis, use something like (H ! C.w).
-//
-// Each basis type can specialise the intrinsic _IHkeProtToBasis for any bases it cares about, but it
-// must implement at least a conversion to the standard or canonical basis, and a conversion from
-// the standard or canonical basis.
-//
-// A basis type does not need to specialise the intrinsic for conversions from itself to itself,
-// this is handled below.
-
-intrinsic ChangeBasis(A::BasisIHke, B::BasisIHke, elt::EltIHke) -> EltIHke
-{Express elt, which must be in the B basis, in the A basis.}
-    assert FreeModule(A) eq FreeModule(B);
-    assert B eq Parent(elt);
-    W := CoxeterGroup(A);
-
-    // Simple case: same basis.
-    if A eq B then
-        return elt;
-    end if;
-
-    // Test to see if there is a direct basis conversion A <- B.
-    result := _IHkeProtToBasisElt(A, B, elt);
-    if Type(result) eq EltIHke then
-        return result;
-    end if;
-
-    // Otherwise, convert via the default basis.
-    D := DefaultBasis(FreeModule(A));
-    if Type(_IHkeProtToBasis(A, D, W.0)) eq EltIHke and Type(_IHkeProtToBasis(D, B, W.0)) eq EltIHke then
-        return ChangeBasis(A, D, ChangeBasis(D, B, elt));
-    end if;
-
-    error Sprintf("No basis conversion found to (%o) from (%o), i.e. %o from %o", A, B, Type(A), Type(B));
+    return true, ToBasis(A, Parent(x), x);
 end intrinsic;

@@ -84,7 +84,7 @@ function _BarInvolutionStd(M, w)
     return bar_w;
 end function;
 
-intrinsic _IHkeProtBar(H::IHkeAlgBaseStd, elt::EltIHke) -> EltIHke
+intrinsic _Bar(H::IHkeAlgBaseStd, elt::EltIHke) -> EltIHke
 {The bar involution on elt, mapping p(v)H(w) to p(v^-1)H(w^-1)^-1.}
     assert H eq Parent(elt);
 
@@ -104,17 +104,17 @@ end intrinsic;
 
 declare type IHkeAlgStd[EltIHke]: IHkeAlgBaseStd;
 
-intrinsic IHeckeAlgebraStd(alg::IHkeAlg) -> IHkeAlgStd
+intrinsic StandardBasis(HAlg::IHkeAlg) -> IHkeAlgStd
 {The standard basis of the Hecke algebra.}
-    return _GetOrCreateBasis(alg, IHkeAlgStd, "H", "Standard basis", [], 0);
+    return _GetOrCreateBasis(HAlg, IHkeAlgStd, "H", "Standard basis", [], 0);
 end intrinsic;
 
-intrinsic _IHkeProtUnit(H::IHkeAlgStd) -> EltIHke
+intrinsic _Unit(H::IHkeAlgStd) -> EltIHke
 {Unit element in the standard basis.}
     return H.0;
 end intrinsic;
 
-intrinsic _IHkeProtMult(H1::IHkeAlgStd, elt1::EltIHke, H2::IHkeAlgStd, elt2::EltIHke) -> EltIHke
+intrinsic _Multiply(H1::IHkeAlgStd, elt1::EltIHke, H2::IHkeAlgStd, elt2::EltIHke) -> EltIHke
 {Multiplication inside the standard basis of the Hecke algebra.}
     return _RightAction(H1, elt1, elt2`Terms);
 end intrinsic;
@@ -125,7 +125,7 @@ end intrinsic;
 
 declare type ASModIHkeStd[EltIHke]: IHkeAlgBaseStd;
 
-intrinsic IHeckeAntiSphericalStd(ASMod::IHkeASMod) -> ASModIHkeStd
+intrinsic StandardBasis(ASMod::IHkeASMod) -> ASModIHkeStd
 {The standard basis of the right spherical module.}
     v := BaseRing(ASMod).1;
     return _GetOrCreateBasis(ASMod, ASModIHkeStd, "aH", "Standard basis", Parabolic(ASMod), -v);
@@ -138,7 +138,7 @@ intrinsic _EltIHkeValidate(aH::ASModIHkeStd, elt::EltIHke)
         w, "is not minimal with respect to", I;
 end intrinsic;
 
-intrinsic _IHkeProtMult(M::ASModIHkeStd, eltM::EltIHke, H::IHkeAlgStd, eltH::EltIHke) -> EltIHke
+intrinsic _Multiply(M::ASModIHkeStd, eltM::EltIHke, H::IHkeAlgStd, eltH::EltIHke) -> EltIHke
 {Action of the standard basis of the Hecke algebra on the standard basis of the antispherical module.}
     return _RightAction(M, eltM, eltH`Terms);
 end intrinsic;
@@ -149,7 +149,7 @@ end intrinsic;
 
 declare type SModIHkeStd[EltIHke]: IHkeAlgBaseStd;
 
-intrinsic IHeckeSphericalStd(SMod::IHkeSMod) -> SModIHkeStd
+intrinsic StandardBasis(SMod::IHkeSMod) -> SModIHkeStd
 {The standard basis of the right spherical module.}
     v := BaseRing(SMod).1;
     return _GetOrCreateBasis(SMod, SModIHkeStd, "sH", "Standard basis", Parabolic(SMod), v^-1);
@@ -162,7 +162,7 @@ intrinsic _EltIHkeValidate(sH::SModIHkeStd, elt::EltIHke)
         w, "is not minimal with respect to", I;
 end intrinsic;
 
-intrinsic _IHkeProtMult(M::SModIHkeStd, eltM::EltIHke, H::IHkeAlgStd, eltH::EltIHke) -> EltIHke
+intrinsic _Multiply(M::SModIHkeStd, eltM::EltIHke, H::IHkeAlgStd, eltH::EltIHke) -> EltIHke
 {Action of the standard basis of the Hecke algebra on the standard basis of the spherical module.}
     return _RightAction(M, eltM, eltH`Terms);
 end intrinsic;

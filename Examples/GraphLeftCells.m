@@ -37,9 +37,9 @@ end if;
 // Set up the algebra, basis, and cells
 W := CoxeterGroup(GrpFPCox, type);
 HAlg := IHeckeAlgebra(W);
-H := IHeckeAlgebraStd(HAlg);
+H := StandardBasis(HAlg);
 B := prime eq 0
-    select IHeckeAlgebraCan(HAlg)
+    select CanonicalBasis(HAlg)
       else IHeckeAlgebraPCan(HAlg, type, prime: quiet:=true);
 left, right, twoSided := Cells(B);
 

@@ -63,7 +63,7 @@ function pCanIsDefinitelyCan(type, rank, prime)
     end if;
 end function;
 
-intrinsic IHeckeAlgebraPCan(alg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> BasisIHke
+intrinsic IHeckeAlgebraPCan(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> BasisIHke
 {Load a p-canonical basis from a file, or check against a list of rules to check if this p-canonical
  basis is equal to the canonical basis. If neither of these can be determined, throw an error.
 
@@ -77,7 +77,7 @@ intrinsic IHeckeAlgebraPCan(alg::IHkeAlg, cartanName::MonStgElt, prime::RngIntEl
 
     error if not IsPrime(prime), "The number", prime, "provided was not prime.";
 
-    W := CoxeterGroup(alg);
+    W := CoxeterGroup(HAlg);
     error if CoxeterMatrix(W) ne CoxeterMatrix(cartanName),
         "The given Coxeter group is incompatible with the cartan type", cartanName;
 
@@ -89,7 +89,7 @@ intrinsic IHeckeAlgebraPCan(alg::IHkeAlg, cartanName::MonStgElt, prime::RngIntEl
             printf "The %o-canonical basis for type %o coincides with the canonical basis.\n",
                 prime, cartanName;
         end if;
-        return IHeckeAlgebraCan(alg);
+        return CanonicalBasis(HAlg);
     end if;
 
     // Check if we have the basis available in the database.
@@ -99,7 +99,7 @@ intrinsic IHeckeAlgebraPCan(alg::IHkeAlg, cartanName::MonStgElt, prime::RngIntEl
     end if;
 
     // Read the file
-    C := IHeckeAlgebraCan(alg);
+    C := CanonicalBasis(HAlg);
     inCan := AssociativeArray(W);
     for i -> line in PCanDB[code] do
         // Look for something like "212: (1)C(212) + (1)C(2)".
@@ -114,7 +114,7 @@ intrinsic IHeckeAlgebraPCan(alg::IHkeAlg, cartanName::MonStgElt, prime::RngIntEl
     end for;
 
     basis := New(IHkeAlgPCan);
-    _BasisIHkeInit(~basis, alg, Sprintf("p%oC", prime), Sprintf("%o-canonical basis", prime));
+    _BasisIHkeInit(~basis, HAlg, Sprintf("p%oC", prime), Sprintf("%o-canonical basis", prime));
     basis`Prime := prime;
     basis`CartanName := cartanName;
     basis`InCan := inCan;
@@ -145,13 +145,13 @@ end intrinsic;
 // still need to provide an explicit conversion to the standard basis, since it's the default basis
 // of the Hecke algebra.
 
-intrinsic _IHkeProtToBasis(C::IHkeAlgCan, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(C::IHkeAlgCan, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
 {}
     return pC`InCan[w];
 end intrinsic;
 
 // For the reverse, use unitriangularity.
-intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(pC::IHkeAlgPCan, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
 {}
     if IsDefined(pC`FromCanCache, w) then
         return pC`FromCanCache[w];
@@ -164,11 +164,11 @@ intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, C::IHkeAlgCan, w::GrpFPCoxElt) -> El
     W := CoxeterGroup(pC);
     terms := AssociativeArray(W);
     terms[w] := BaseRing(pC) ! 1;
-    for u -> coeff in _IHkeProtToBasis(C, pC, w)`Terms do
+    for u -> coeff in _ToBasis(C, pC, w)`Terms do
         if u eq w then
             continue;
         end if;
-        _AddScaled(~terms, _IHkeProtToBasis(pC, C, u)`Terms, -coeff);
+        _AddScaled(~terms, _ToBasis(pC, C, u)`Terms, -coeff);
     end for;
     _RemoveZeros(~terms);
     result := EltIHkeConstruct(pC, terms);
@@ -177,16 +177,16 @@ intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, C::IHkeAlgCan, w::GrpFPCoxElt) -> El
     return result;
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(H::IHkeAlgStd, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(H::IHkeAlgStd, pC::IHkeAlgPCan, w::GrpFPCoxElt) -> EltIHke
 {}
-    C := IHeckeAlgebraCan(FreeModule(pC));
-    return _IHkeProtToBasisElt(H, C, _IHkeProtToBasis(C, pC, w));
+    C := CanonicalBasis(FreeModule(pC));
+    return _ToBasis(H, C, _ToBasis(C, pC, w));
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(pC::IHkeAlgPCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(pC::IHkeAlgPCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
 {}
-    C := IHeckeAlgebraCan(FreeModule(pC));
-    return _IHkeProtToBasisElt(pC, C, _IHkeProtToBasis(C, H, w));
+    C := CanonicalBasis(FreeModule(pC));
+    return _ToBasis(pC, C, _ToBasis(C, H, w));
 end intrinsic;
 
 /////////////////////

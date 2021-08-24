@@ -16,7 +16,7 @@ assert CoxeterGroup(HAlg) eq W;
 LPoly<v> := BaseRing(HAlg);
 
 // Standard basis creation
-H := IHeckeAlgebraStd(HAlg);
+H := StandardBasis(HAlg);
 
 // Standard basis accessors
 assert Sprint(H) eq "Standard basis of Iwahori-Hecke algebra of type A2, symbol H";

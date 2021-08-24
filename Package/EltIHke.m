@@ -96,7 +96,7 @@ intrinsic 'eq'(elt1::EltIHke, elt2::EltIHke) -> BoolElt
 {Compares whether two elements are equal. This has the same semantics as IsZero(elt1 - elt2).}
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
-        elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
     end if;
 
     // Associative arrays have no 'eq' function. Instead we check manually: two functions defined on
@@ -185,7 +185,7 @@ intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
 
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
-        elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
     end if;
 
     W := CoxeterGroup(elt1`Parent);
@@ -203,7 +203,7 @@ intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
 
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
-        elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
     end if;
 
     W := CoxeterGroup(elt1`Parent);
@@ -238,15 +238,15 @@ end intrinsic;
 
 intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
 {}
-    result := _IHkeProtMult(Parent(eltA), eltA, Parent(eltB), eltB);
+    result := _Multiply(Parent(eltA), eltA, Parent(eltB), eltB);
     if Type(result) eq EltIHke then
         return result;
     end if;
 
-    // Convert to default basis and multiply.
-    defA := DefaultBasis(FreeModule(eltA));
-    defB := DefaultBasis(FreeModule(eltB));
-    product := _IHkeProtMult(defA, ChangeBasis(defA, Parent(eltA), eltA), defB, ChangeBasis(defB, Parent(eltB), eltB));
+    // Convert to standard basis and multiply.
+    stdA := StandardBasis(FreeModule(eltA));
+    stdB := StandardBasis(FreeModule(eltB));
+    product := _Multiply(stdA, ToBasis(stdA, Parent(eltA), eltA), stdB, ToBasis(stdB, Parent(eltB), eltB));
 
     if Type(product) ne EltIHke then
         error "Multiplication not defined between", FreeModule(eltA), "and", FreeModule(eltB);
@@ -255,9 +255,9 @@ intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
     // Change back into either the A or B basis (we don't know which a priori, eg if this is a module action
     // rather than a multiplication). Prefer the left.
     if FreeModule(product) cmpeq FreeModule(eltA) then
-        return ChangeBasis(Parent(eltA), Parent(product), product);
+        return ToBasis(Parent(eltA), Parent(product), product);
     elif FreeModule(product) cmpeq FreeModule(eltB) then
-        return ChangeBasis(Parent(eltB), Parent(product), product);
+        return ToBasis(Parent(eltB), Parent(product), product);
     end if;
 
     error
@@ -266,7 +266,7 @@ intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
         "or", FreeModule(eltB);
 end intrinsic;
 
-intrinsic _IHkeProtMult(A::BasisIHke, eltA::EltIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
+intrinsic _Multiply(A::BasisIHke, eltA::EltIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
 {Fallback implementation for multiplication.}
     return false;
 end intrinsic;
@@ -277,12 +277,18 @@ end intrinsic;
 
 intrinsic Bar(elt::EltIHke) -> EltIHke
 {Perform the bar involution on elt, returning the result in the same basis as elt.}
-    return _IHkeProtBar(Parent(elt), elt);
+    // First check if there is a bar involution defined on this basis.
+    result := _Bar(Parent(elt), elt);
+    if Type(result) eq EltIHke then return result; end if;
+
+    // Convert to canonical basis, perform Bar, convert back.
+    C := CanonicalBasis(FreeModule(elt));
+    result := ToBasis(Parent(elt), C, Bar(ToBasis(C, Parent(elt), elt)));
+    error if Type(result) ne EltIHke, "Bar involution not defined on", C;
+    return result;
 end intrinsic;
 
-intrinsic _IHkeProtBar(A::BasisIHke, elt::EltIHke) -> EltIHke
-{Fall-back implementation of the bar involution: convert to canonical, apply involution, convert back.}
-    C := IHeckeAlgebraCan(Parent(A));
-    return ChangeBasis(A, C, Bar(ChangeBasis(C, A, elt)));
+intrinsic _Bar(A::BasisIHke, eltA::EltIHke) -> EltIHke
+{Fall-back implementation of Bar involution.}
+    return false;
 end intrinsic;
-

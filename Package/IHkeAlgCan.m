@@ -60,7 +60,7 @@ function _MuCoeffs(H, C, w)
         return AssociativeArray(W);
     end if;
 
-    Cw := _IHkeProtToBasis(H, C, w);
+    Cw := _ToBasis(H, C, w);
     mu := AssociativeArray(W);
     for u -> coeff in Cw`Terms do
         v_coeff := Coefficient(coeff, 1);
@@ -89,11 +89,11 @@ function _CanToStd(H, C, w, I, eig)
     ws := w * W.s;
 
     // C(ws) = C(w)C(s) - sum[us < u]mu(u, ws) C(u)
-    Cw := _IHkeProtToBasis(H, C, ws);
+    Cw := _ToBasis(H, C, ws);
     CwCs := _RightMultCanGen(Cw, s, I, eig);
     for u -> coeff in _MuCoeffs(H, C, ws) do
         if #(u*W.s) lt #u then
-            CwCs -:= coeff * _IHkeProtToBasis(H, C, u);
+            CwCs -:= coeff * _ToBasis(H, C, u);
         end if;
     end for;
 
@@ -117,13 +117,13 @@ function _StdToCan(H, C, w)
     W := CoxeterGroup(H);
     terms := AssociativeArray(W);
     terms[w] := BaseRing(C) ! 1;
-    Cw := _IHkeProtToBasis(H, C, w);
+    Cw := _ToBasis(H, C, w);
     for u -> coeff in Cw`Terms do
         if u eq w then
             continue;
         end if;
 
-        Cu := _IHkeProtToBasis(C, H, u);
+        Cu := _ToBasis(C, H, u);
         _AddScaled(~terms, Cu`Terms, -coeff);
     end for;
     _RemoveZeros(~terms);
@@ -133,7 +133,7 @@ function _StdToCan(H, C, w)
     return result;
 end function;
 
-intrinsic _IHkeProtBar(C::IHkeAlgBaseCan, elt::EltIHke) -> EltIHke
+intrinsic _Bar(C::IHkeAlgBaseCan, elt::EltIHke) -> EltIHke
 {The bar involution of elt, fixing each basis element and twisting scalars by by v -> v^-1.}
     assert C eq Parent(elt);
 
@@ -153,17 +153,17 @@ end intrinsic;
 
 declare type IHkeAlgCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic IHeckeAlgebraCan(HAlg::IHkeAlg) -> IHkeAlgCan
+intrinsic CanonicalBasis(HAlg::IHkeAlg) -> IHkeAlgCan
 {The canonical basis of the Hecke algebra.}
     return _GetOrCreateBasis(HAlg, IHkeAlgCan, "C", "Canonical basis", [], 0);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(H::IHkeAlgStd, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(H::IHkeAlgStd, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
 {Express C(w) in the standard basis.}
     return _CanToStd(H, C, w, [], 0);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(C::IHkeAlgCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(C::IHkeAlgCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
 {Express H(w) in the canonical basis.}
     return _StdToCan(H, C, w);
 end intrinsic;
@@ -174,7 +174,7 @@ end intrinsic;
 
 declare type ASModIHkeCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic IHeckeAntiSphericalCan(ASMod::IHkeASMod) -> ASModIHkeCan
+intrinsic CanonicalBasis(ASMod::IHkeASMod) -> ASModIHkeCan
 {The canonical basis of the right antispherical module.}
     v := BaseRing(ASMod).1;
     return _GetOrCreateBasis(ASMod, ASModIHkeCan, "aC", "Canonical basis", Parabolic(ASMod), -v);
@@ -187,12 +187,12 @@ intrinsic _EltIHkeValidate(aC::ASModIHkeCan, elt::EltIHke)
         w, "is not minimal with respect to", I;
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(aH::ASModIHkeStd, aC::ASModIHkeCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(aH::ASModIHkeStd, aC::ASModIHkeCan, w::GrpFPCoxElt) -> EltIHke
 {Express aC(w) in the standard basis.}
     return _CanToStd(aH, aC, w, aH`Para, aH`Eig);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(aC::ASModIHkeCan, aH::ASModIHkeStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(aC::ASModIHkeCan, aH::ASModIHkeStd, w::GrpFPCoxElt) -> EltIHke
 {Express aH(w) in the canonical basis.}
     return _StdToCan(aH, aC, w);
 end intrinsic;
@@ -203,7 +203,7 @@ end intrinsic;
 
 declare type SModIHkeCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic IHeckeSphericalCan(SMod::IHkeSMod) -> SModIHkeCan
+intrinsic CanonicalBasis(SMod::IHkeSMod) -> SModIHkeCan
 {The canonical basis of the right antispherical module.}
     v := BaseRing(SMod).1;
     return _GetOrCreateBasis(SMod, SModIHkeCan, "sC", "Canonical basis", Parabolic(SMod), v^-1);
@@ -216,12 +216,12 @@ intrinsic _EltIHkeValidate(sC::SModIHkeCan, elt::EltIHke)
         w, "is not minimal with respect to", I;
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(sH::SModIHkeStd, sC::SModIHkeCan, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(sH::SModIHkeStd, sC::SModIHkeCan, w::GrpFPCoxElt) -> EltIHke
 {Express sC(w) in the standard basis.}
     return _CanToStd(sH, sC, w, sH`Para, sH`Eig);
 end intrinsic;
 
-intrinsic _IHkeProtToBasis(sC::SModIHkeCan, sH::SModIHkeStd, w::GrpFPCoxElt) -> EltIHke
+intrinsic _ToBasis(sC::SModIHkeCan, sH::SModIHkeStd, w::GrpFPCoxElt) -> EltIHke
 {Express sH(w) in the canonical basis.}
     return _StdToCan(sH, sC, w);
 end intrinsic;

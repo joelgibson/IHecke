@@ -2,24 +2,24 @@
 // bases, all at once (to simplify interpreter sessions).
 
 intrinsic ShortcutIHeckeAlgebra(W::GrpFPCox) -> IHkeAlg, GrpFPCox, IHkeAlgStd, IHkeAlgCan
-{Shortcut for constructing the Hecke algebra, group, standard, and canonical bases, from a group.}
+{Shortcut for constructing the Hecke algebra, group, standard, and canonical bases from a group.}
     HAlg := IHeckeAlgebra(W);
-    return HAlg, W, IHeckeAlgebraStd(HAlg), IHeckeAlgebraCan(HAlg);
+    return HAlg, W, StandardBasis(HAlg), CanonicalBasis(HAlg);
 end intrinsic;
 
 intrinsic ShortcutIHeckeAlgebra(type::MonStgElt) -> IHkeAlg, GrpFPCox, IHkeAlgStd, IHkeAlgCan
-{Shortcut for constructing the Hecke algebra, group, standard, and canonical bases, from a type.}
+{Shortcut for constructing the Hecke algebra, group, standard, and canonical bases from a type.}
     return ShortcutIHeckeAlgebra(CoxeterGroup(GrpFPCox, type));
 end intrinsic;
 
-intrinsic ShortcutIHeckeAntiSpherical(HAlg::IHkeAlg, I::SeqEnum[RngIntElt]) -> IHkeASMod, ASModIHkeStd, ASModIHkeCan
-{Shortcut for constructing the antispherical module, standard, and canonical bases from a Hecke algebra.}
-    ASMod := IHeckeAntiSpherical(HAlg, I);
-    return ASMod, IHeckeAntiSphericalStd(ASMod), IHeckeAntiSphericalCan(ASMod);
+intrinsic ShortcutIHeckeASMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeASMod, ASModIHkeStd, ASModIHkeCan
+{Shortcut for constructing the antispherical module, standard, and canonical bases from a group.}
+    ASMod := IHeckeASMod(W, I);
+    return ASMod, StandardBasis(ASMod), CanonicalBasis(ASMod);
 end intrinsic;
 
-intrinsic ShortcutIHeckeSpherical(HAlg::IHkeAlg, I::SeqEnum[RngIntElt]) -> IHkeSMod, SModIHkeStd, SModIHkeCan
-{Shortcut for constructing the spherical module, standard, and canonical bases from a Hecke algebra.}
-    SMod := IHeckeSpherical(HAlg, I);
-    return SMod, IHeckeSphericalStd(SMod), IHeckeSphericalCan(SMod);
+intrinsic ShortcutIHeckeSMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeSMod, SModIHkeStd, SModIHkeCan
+{Shortcut for constructing the spherical module, standard, and canonical bases from a group.}
+    SMod := IHeckeSMod(W, I);
+    return SMod, StandardBasis(SMod), CanonicalBasis(SMod);
 end intrinsic;

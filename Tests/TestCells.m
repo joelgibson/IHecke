@@ -6,7 +6,7 @@ AttachSpec("IHecke.spec");
 // Run an S3 example
 W := CoxeterGroup(GrpFPCox, "A2");
 HAlg := IHeckeAlgebra(W);
-C := IHeckeAlgebraCan(HAlg);
+C := CanonicalBasis(HAlg);
 
 // Enumerating Coxeter groups
 assert #EnumerateCoxeterGroup(W: lengthBound := 0) eq 1;

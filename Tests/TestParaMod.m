@@ -21,19 +21,19 @@ end function;
 W := CoxeterGroup(GrpFPCox, "A2");
 HAlg := IHeckeAlgebra(W);
 LPoly<v> := BaseRing(HAlg);
-H := IHeckeAlgebraStd(HAlg);
-C := IHeckeAlgebraCan(HAlg);
+H := StandardBasis(HAlg);
+C := CanonicalBasis(HAlg);
 
 
 // Antispherical module creation.
-ASMod := IHeckeAntiSpherical(HAlg, [2]);
+ASMod := IHeckeASMod(W, [2]);
 
 // Module accessors
 assert Sprint(ASMod) eq "Antispherical module of type A2, parabolic [ 2 ]";
 assert CoxeterGroup(ASMod) eq W;
 
 // Standard basis creation
-aH := IHeckeAntiSphericalStd(ASMod);
+aH := StandardBasis(ASMod);
 
 // Standard basis accessors
 assert Sprint(aH) eq "Standard basis of Antispherical module of type A2, parabolic [ 2 ], symbol aH";
@@ -76,7 +76,7 @@ assert IsZero(aH.0 * C.[2, 1]);
 assert IsZero(aH.0 * C.[2, 1, 2]);
 
 // Canonical basis creation
-aC := IHeckeAntiSphericalCan(ASMod);
+aC := CanonicalBasis(ASMod);
 assert Sprint(aC) eq "Canonical basis of Antispherical module of type A2, parabolic [ 2 ], symbol aC";
 
 // Canonical basis element creation.
@@ -93,14 +93,14 @@ assert aH ! aC.1 eq aH.1 + v*aH.0;
 assert aH ! aC.[1, 2] eq aH.[1, 2] + v*aH.1;
 
 // Spherical module creation.
-SMod := IHeckeSpherical(HAlg, [2]);
+SMod := IHeckeSMod(W, [2]);
 
 // Module accessors
 assert Sprint(SMod) eq "Spherical module of type A2, parabolic [ 2 ]";
 assert CoxeterGroup(SMod) eq W;
 
 // Standard basis creation
-sH := IHeckeSphericalStd(SMod);
+sH := StandardBasis(SMod);
 
 // Standard basis accessors
 assert Sprint(sH) eq "Standard basis of Spherical module of type A2, parabolic [ 2 ], symbol sH";
@@ -143,7 +143,7 @@ assert sH.0 * C.[2, 1] eq (v^-1 + v)*sH.1 + (1 + v^2)*sH.0;
 assert sH.0 * C.[2, 1, 2] eq (v + v^-1)*sH.[1,2] + (1 + v^2)*sH.1 + (v + v^3)*sH.0;
 
 // Canonical basis creation
-sC := IHeckeSphericalCan(SMod);
+sC := CanonicalBasis(SMod);
 assert Sprint(sC) eq "Canonical basis of Spherical module of type A2, parabolic [ 2 ], symbol sC";
 
 // Canonical basis element creation.
@@ -162,18 +162,17 @@ assert sH ! sC.[1, 2] eq sH.[1, 2] + v*sH.1 + (1 + v^2)*sH.0;
 // Test self-duality of canonical bases in larger examples.
 procedure testSelfDuality(type, I)
     W := CoxeterGroup(GrpFPCox, type);
-    HAlg := IHeckeAlgebra(W);
 
-    ASMod := IHeckeAntiSpherical(HAlg, I);
-    aH := IHeckeAntiSphericalStd(ASMod);
-    aC := IHeckeAntiSphericalCan(ASMod);
+    ASMod := IHeckeASMod(W, I);
+    aH := StandardBasis(ASMod);
+    aC := CanonicalBasis(ASMod);
     for w in EnumerateCoxeterGroup(W, I) do
         assert (aH ! aC.w) eq Bar(aH ! aC.w);
     end for;
 
-    SMod := IHeckeSpherical(HAlg, I);
-    sH := IHeckeSphericalStd(SMod);
-    sC := IHeckeSphericalCan(SMod);
+    SMod := IHeckeSMod(W, I);
+    sH := StandardBasis(SMod);
+    sC := CanonicalBasis(SMod);
     for w in EnumerateCoxeterGroup(W, I) do
         assert (sH ! sC.w) eq Bar(sH ! sC.w);
     end for;
