@@ -1,6 +1,6 @@
 declare type CelIHke;
 declare attributes CelIHke:
-    // The basis associated to the cells (some type extending AlgIHkeBase)
+    // The basis associated to the cells (some type extending BasisIHke)
     Basis,
 
     // The CellType is "Left", "Right", or "Two-sided".
@@ -49,6 +49,13 @@ intrinsic CellLe(cel::CelIHke, x::GrpFPCoxElt, y::GrpFPCoxElt) -> BoolElt
     return ok;
 end intrinsic;
 
+intrinsic GeneratingEdges(cel::CelIHke) -> SeqEnum[SetEnum[GrpFPCox]]
+{Return a list of edges [comp1, comp2] which generate the cell order.}
+    return [ [cel`Components[Index(InitialVertex(edge))], cel`Components[Index(TerminalVertex(edge))] ]
+           : edge in Edges(cel`QuotGraph)
+           | InitialVertex(edge) ne TerminalVertex(edge) ];
+end intrinsic;
+
 
 /////////////////////
 // Creation
@@ -60,6 +67,11 @@ intrinsic EnumerateCoxeterGroup(W::GrpFPCox: lengthBound := -1, quiet := false) 
  elements will be returned. An error will be thrown if W is infinite and lengthBound is negative.
  A warning will be issued if more than 1 million elements are enumerated, which can be suppressed
  with quiet := true.}
+    return EnumerateCoxeterGroup(W, []: lengthBound:=lengthBound, quiet:=quiet);
+end intrinsic;
+
+intrinsic EnumerateCoxeterGroup(W::GrpFPCox, I::SeqEnum[RngIntElt]: lengthBound:=-1, quiet:=false) -> SetIndx[GrpFPCoxElt]
+{The same as EnumerateCoxeterGroup, but enumerating only the I-minimal elements.}
     warningLimit := 1000000;
     error if lengthBound lt 0 and not IsCoxeterFinite(CartanName(W)),
         "Cannot enumerate an infinite group.";
@@ -76,7 +88,7 @@ intrinsic EnumerateCoxeterGroup(W::GrpFPCox: lengthBound := -1, quiet := false) 
         for w in frontier do
             for s in gens do
                 ws := w * s;
-                if #ws gt #w and ws notin newFrontier then
+                if IsMinimal(I, ws) and #ws gt #w and ws notin newFrontier then
                     Include(~newFrontier, ws);
                     Include(~elts, ws);
                 end if;
@@ -130,9 +142,7 @@ function _CreateCel(Basis, CellType, Welts, digraph)
     return cel;
 end function;
 
-
-// User-callable, constructs all cells.
-intrinsic Cells(B::AlgIHkeBase) -> Digraph, Digraph, Digraph
+intrinsic Cells(B::BasisIHke) -> Digraph, Digraph, Digraph
 {Return the left, right, and two-sided cells of B. Each collection of cells is returned as a
  directed acyclic graph, whose vertices are sets of Coxeter group elements, forming a partition of
  the Coxeter group. The transitive closure of the graph gives the cell order.}

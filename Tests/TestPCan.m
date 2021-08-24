@@ -1,6 +1,6 @@
 // Test loading a few p-canonical basis elements, and basis conversions.
 
-if assigned batch then SetQuitOnError(true); else SetDebugOnError(true); end if;
+SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);
 AttachSpec("IHecke.spec");
@@ -9,12 +9,12 @@ for cartanName in ["B2", "C3"] do
     // Loading p-canonical bases
     W := CoxeterGroup(GrpFPCox, cartanName);
     HAlg := IHeckeAlgebra(W);
-    H := IHeckeAlgebraStd(HAlg);
-    C := IHeckeAlgebraCan(HAlg);
+    H := StandardBasis(HAlg);
+    C := CanonicalBasis(HAlg);
     pC := IHeckeAlgebraPCan(HAlg, cartanName, 2: quiet := true);
 
     // p-canonical basis accessors
-    assert Parent(pC) eq HAlg;
+    assert FreeModule(pC) eq HAlg;
     assert CoxeterGroup(pC) eq W;
     assert BasisSymbol(pC) eq "p2C";
     assert BasisName(pC) eq "2-canonical basis";

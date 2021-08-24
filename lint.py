@@ -22,8 +22,8 @@ def check_file(fname: str):
         if line.rstrip() != line:
             print(f"{fname}:{line_no} trailing space")
 
-        if "New(AlgIHkeBase)" in line:
-            print(f"{fname}:{line_no} new AlgIHkeBase created (abstract type should not be created)")
+        if "New(BasisIHke)" in line:
+            print(f"{fname}:{line_no} new BasisIHke created (abstract type should not be created)")
 
         if 'todo' in line.lower():
             print(f"{fname}:{line_no} TODO found: {line}")
@@ -41,7 +41,7 @@ def search_file(pattern, fname):
 
 
 # Check that version numbers line up
-code_date = search_file(r'return.*version.*(\d\d\d\d-\d\d-\d\d)', 'Package/AlgIHke.m')
+code_date = search_file(r'return.*version.*(\d\d\d\d-\d\d-\d\d)', 'Package/IHkeAlg.m')
 readme_date = search_file(r'(\d\d\d\d-\d\d-\d\d).*current', 'README.md')
 if code_date is None:
     print("No version date found in the code")

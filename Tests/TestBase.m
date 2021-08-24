@@ -1,7 +1,7 @@
 // Test creation of a Hecke algebra and its standard basis, and basic operations within the standard
 // basis.
 
-if assigned batch then SetQuitOnError(true); else SetDebugOnError(true); end if;
+SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);
 AttachSpec("IHecke.spec");
@@ -16,11 +16,11 @@ assert CoxeterGroup(HAlg) eq W;
 LPoly<v> := BaseRing(HAlg);
 
 // Standard basis creation
-H := IHeckeAlgebraStd(HAlg);
+H := StandardBasis(HAlg);
 
 // Standard basis accessors
-assert Sprint(H) eq "Standard basis of Hecke algebra for Coxeter group of type A2, symbol H";
-assert Parent(H) eq HAlg;
+assert Sprint(H) eq "Standard basis of Iwahori-Hecke algebra of type A2, symbol H";
+assert FreeModule(H) eq HAlg;
 assert CoxeterGroup(H) eq W;
 assert BasisSymbol(H) eq "H";
 assert BasisName(H) eq "Standard basis";
@@ -46,7 +46,8 @@ assert H ! 2 eq 2 * H.0;
 // Standard basis coercion from self.
 assert H ! H.[1,2] eq H.[1,2];
 
-// Standard basis support.
+// Standard basis support and arithmetic.
+assert -(-H.1) eq H.1;
 assert Support(H.1) eq {@ W.1 @};
 assert Support(H.1 - H.1) eq {@ @};
 supp, coeffs := Support(H.1 - v*H.0);
@@ -54,10 +55,9 @@ assert Setseq(supp) eq [W.0, W.1];
 assert coeffs eq [-v, LPoly!1];
 
 // Standard basis multiplication: identity.
-elts := EnumerateCoxeterGroup(W);
-for elt in elts do
-    assert H.0 * H.elt eq H.elt;
-    assert H.elt * H.0 eq H.elt;
+for w in EnumerateCoxeterGroup(W) do
+    assert H.0 * H.w eq H.w;
+    assert H.w * H.0 eq H.w;
 end for;
 
 // Standard basis multiplication: quadratic relation.

@@ -1,7 +1,7 @@
 // Test creation of the canonical basis, and conversion to and from the standard basis.
 // Also use the bar involution on the standard basis to double-check the canonical basis.
 
-if assigned batch then SetQuitOnError(true); else SetDebugOnError(true); end if;
+SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);
 AttachSpec("IHecke.spec");
@@ -10,12 +10,12 @@ AttachSpec("IHecke.spec");
 W := CoxeterGroup(GrpFPCox, "B3");
 HAlg := IHeckeAlgebra(W);
 LPoly<v> := BaseRing(HAlg);
-H := IHeckeAlgebraStd(HAlg);
-C := IHeckeAlgebraCan(HAlg);
+H := StandardBasis(HAlg);
+C := CanonicalBasis(HAlg);
 
 // Canonical basis accessors
-assert Sprint(C) eq "Canonical basis of Hecke algebra for Coxeter group of type B3, symbol C";
-assert Parent(C) eq HAlg;
+assert Sprint(C) eq "Canonical basis of Iwahori-Hecke algebra of type B3, symbol C";
+assert FreeModule(C) eq HAlg;
 assert CoxeterGroup(C) eq W;
 assert BasisSymbol(C) eq "C";
 assert BasisName(C) eq "Canonical basis";

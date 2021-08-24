@@ -1,16 +1,18 @@
 {
     Package
     {
-        AlgIHke.m
-        AlgIHkeBase.m
-        AlgIHkeCan.m
-        AlgIHkePCan.m
-        AlgIHkeStd.m
+        IHkeAlg.m
+        IHkeAlgCan.m
+        IHkeAlgStd.m
+        BasisIHke.m
         Cells.m
         EltIHke.m
+        FModIHke.m
+        Shortcuts.m
     }
     PCanBases
     {
+        IHkeAlgPCan.m
         PCanDB.m
     }
 }

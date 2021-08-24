@@ -1,38 +1,33 @@
-// The base ring we work over for the Hecke algebra is the Laurent polynomials.
-// In Magma, a built-in structure that does this is the Laurent series.
-_LaurentPolyRing := LaurentSeriesRing(Integers());
-AssignNames(~_LaurentPolyRing, ["v"]);
-_v := _LaurentPolyRing.1;
-
-
-// An EltIHke is a formal Laurent-polynomial-linear combination of Coxeter group elements. The
-// interpretation of this linear combination depends on what the Parent structure is: it is either
-// a type inheriting from AlgIHkeBase (a basis in the Hecke algebra), or ModIHke (a basis in a spherical
-// or antispherical module).
+// An EltIHke a formal linear combination of Coxeter group elements, along with a Parent object
+// which determines a basis. For example, (H, 1*w) would be w in the standard basis, while (C, 1*w)
+// would be w in the canonical basis.
 declare type EltIHke;
 declare attributes EltIHke:
-    // An instance of a type inheriting from AlgIHkeBase or ModIHke.
-    Parent,
-
-    // An associative array of Coxeter group elements to Laurent polynomials.
-    // This is always normalised so that there are no elements mapping to zero.
-    Terms;
+    Parent, // A basis, i.e. a type inheriting from BasisIHke.
+    Terms;  // An AssociativeArray mapping Coxeter group elements to ring elements. This array is
+            // normalised so that there are no elements mapping to zero.
 
 
 ////////////////////////////
 // Construction
 
-// An EltIHke is always constructed via this function. Other files defining intrinsics should
-// import this function.
-function _EltIHkeConstruct(parent, terms)
+intrinsic _EltIHkeValidate(B::BasisIHke, elt::EltIHke)
+{Bases should override this intrinsic and throw an error if elt contains any illegal terms. For
+ example, bases for the antispherical and spherical modules should reject non-minimal elements.}
+end intrinsic;
+
+intrinsic EltIHkeConstruct(B::BasisIHke, terms::Assoc) -> EltIHke
+{Constructor for EltIHke (only this function should ever be used).}
+    // Check that zeros are normalised out.
     assert forall{w : w -> coeff in terms | coeff ne 0};
-    assert Universe(terms) eq CoxeterGroup(parent);
+    assert Universe(terms) eq CoxeterGroup(B);
 
     elt := New(EltIHke);
-    elt`Parent := parent;
+    elt`Parent := B;
     elt`Terms := terms;
+    _EltIHkeValidate(B, elt);
     return elt;
-end function;
+end intrinsic;
 
 
 //////////////////////////
@@ -51,7 +46,7 @@ group element being rendered as 'id'. Zero is printed as (0)H(id).}
     symbol := BasisSymbol(elt`Parent);
     keys := Sort(Setseq(Keys(elt`Terms)));
     if IsZero(elt) then
-        printf "(%o)%o(%o)", _LaurentPolyRing!0, symbol, FmtElt(CoxeterGroup(elt`Parent).0);
+        printf "(%o)%o(%o)", 0, symbol, FmtElt(CoxeterGroup(elt`Parent).0);
     else
         printf Join([
                 Sprintf("(%o)%o(%o)", elt`Terms[key], symbol, FmtElt(key))
@@ -60,9 +55,14 @@ group element being rendered as 'id'. Zero is printed as (0)H(id).}
     end if;
 end intrinsic;
 
-intrinsic Parent(elt::EltIHke) -> .
-{The parent structure (a type inheriting from AlgIHkeBase or ModIHke).}
+intrinsic Parent(elt::EltIHke) -> BasisIHke
+{The parent structure (a type inheriting from BasisIHke or ModIHke).}
     return elt`Parent;
+end intrinsic;
+
+intrinsic FreeModule(elt::EltIHke) -> FModIHke
+{The free module to which this element belongs.}
+    return FreeModule(Parent(elt));
 end intrinsic;
 
 intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt) -> RngElt
@@ -70,7 +70,7 @@ intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt) -> RngElt
     if IsDefined(elt`Terms, w) then
         return elt`Terms[w];
     else
-        return _LaurentPolyRing ! 0;
+        return BaseRing(Parent(elt)) ! 0;
     end if;
 end intrinsic;
 
@@ -96,7 +96,7 @@ intrinsic 'eq'(elt1::EltIHke, elt2::EltIHke) -> BoolElt
 {Compares whether two elements are equal. This has the same semantics as IsZero(elt1 - elt2).}
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
-        elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
     end if;
 
     // Associative arrays have no 'eq' function. Instead we check manually: two functions defined on
@@ -144,6 +144,12 @@ end procedure;
 
 // termsA <- termsA + Basis(w) * scalar
 procedure _AddScaledTerm(~terms, w, scalar)
+    // Early exit is an optimisation, unnecessary for correctness. We don't want to be creating a
+    // bunch of (w -> 0) entries in the associative array only to delete them later.
+    if scalar eq 0 then
+        return;
+    end if;
+
     if IsDefined(terms, w) then
         terms[w] +:= scalar;
     else
@@ -156,18 +162,30 @@ end procedure;
 function _IsUniTriangular(terms, w)
     return IsDefined(terms, w)
         and terms[w] eq 1
-        and forall{u : u -> _ in terms | u le w};
+        and forall{u : u -> _ in terms | BruhatLessOrEqual(u, w)};
 end function;
 
 
 ////////////////////////
 // R-module operations
 
+intrinsic '-'(elt::EltIHke) -> EltIHke
+{The negation of an element.}
+    terms := AssociativeArray(CoxeterGroup(Parent(elt)));
+    for w -> coeff in elt`Terms do
+        terms[w] := -coeff;
+    end for;
+    return EltIHkeConstruct(Parent(elt), terms);
+end intrinsic;
+
 intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
-{The sum of two elements. Will throw an if over different algebras.}
+{The sum of two elements. Will throw an error if adding over different free modules.}
+    error if FreeModule(elt1) ne FreeModule(elt2),
+        "Cannot add in different free modules", FreeModule(elt1), "and", FreeModule(elt2);
+
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
-        elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
     end if;
 
     W := CoxeterGroup(elt1`Parent);
@@ -175,14 +193,17 @@ intrinsic '+'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
     _AddScaled(~assocs, elt1`Terms, 1);
     _AddScaled(~assocs, elt2`Terms, 1);
     _RemoveZeros(~assocs);
-    return _EltIHkeConstruct(Parent(elt1), assocs);
+    return EltIHkeConstruct(Parent(elt1), assocs);
 end intrinsic;
 
 intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
-{The difference of two elements. Will throw an if over different algebras.}
+{The difference of two elements. Will throw an if subtracting over different free modules.}
+    error if FreeModule(elt1) ne FreeModule(elt2),
+        "Cannot subtract in different free modules", FreeModule(elt1), "and", FreeModule(elt2);
+
     // Change into the left basis if necessary.
     if Parent(elt1) ne Parent(elt2) then
-        elt2 := ChangeBasis(Parent(elt1), Parent(elt2), elt2);
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
     end if;
 
     W := CoxeterGroup(elt1`Parent);
@@ -190,23 +211,20 @@ intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
     _AddScaled(~assocs, elt1`Terms, 1);
     _AddScaled(~assocs, elt2`Terms, -1);
     _RemoveZeros(~assocs);
-    return _EltIHkeConstruct(Parent(elt1), assocs);
+    return EltIHkeConstruct(Parent(elt1), assocs);
 end intrinsic;
 
 intrinsic '*'(elt::EltIHke, scalar::RngElt) -> EltIHke
 {Scale an element by a scalar (Laurent polynomial or integer).}
-    r := _LaurentPolyRing ! scalar; // Throws an error if scalar is not coercible into _LaurentPolyRing.
+    ok, r := IsCoercible(BaseRing(Parent(elt)), scalar);
+    error if not ok,
+        "Cannot scalar multiply by", scalar, "since the base ring of", Parent(elt), "is", BaseRing(Parent(elt));
 
     W := CoxeterGroup(elt`Parent);
     assocs := AssociativeArray(W);
-
-    // Special-case zero (skips work, also by doing this we don't need to call _RemoveZeros)
-    if IsZero(r) then
-        return _EltIHkeConstruct(Parent(elt), assocs);
-    end if;
-
     _AddScaled(~assocs, elt`Terms, r);
-    return _EltIHkeConstruct(Parent(elt), assocs);
+    _RemoveZeros(~assocs);
+    return EltIHkeConstruct(Parent(elt), assocs);
 end intrinsic;
 
 intrinsic '*'(scalar::RngElt, elt::EltIHke) -> EltIHke
@@ -220,18 +238,35 @@ end intrinsic;
 
 intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
 {}
-    result := _IHkeProtMult(Parent(eltA), eltA, Parent(eltB), eltB);
+    result := _Multiply(Parent(eltA), eltA, Parent(eltB), eltB);
     if Type(result) eq EltIHke then
         return result;
     end if;
 
     // Convert to standard basis and multiply.
-    H := IHeckeAlgebraStd(Parent(Parent(eltA)));
-    product := _IHkeProtMult(H, ChangeBasis(H, Parent(eltA), eltA), H, ChangeBasis(H, Parent(eltB), eltB));
-    return ChangeBasis(Parent(eltA), H, product);
+    stdA := StandardBasis(FreeModule(eltA));
+    stdB := StandardBasis(FreeModule(eltB));
+    product := _Multiply(stdA, ToBasis(stdA, Parent(eltA), eltA), stdB, ToBasis(stdB, Parent(eltB), eltB));
+
+    if Type(product) ne EltIHke then
+        error "Multiplication not defined between", FreeModule(eltA), "and", FreeModule(eltB);
+    end if;
+
+    // Change back into either the A or B basis (we don't know which a priori, eg if this is a module action
+    // rather than a multiplication). Prefer the left.
+    if FreeModule(product) cmpeq FreeModule(eltA) then
+        return ToBasis(Parent(eltA), Parent(product), product);
+    elif FreeModule(product) cmpeq FreeModule(eltB) then
+        return ToBasis(Parent(eltB), Parent(product), product);
+    end if;
+
+    error
+        "Multiplication result in module", FreeModule(result),
+        "was incompatible with either of", FreeModule(eltA),
+        "or", FreeModule(eltB);
 end intrinsic;
 
-intrinsic _IHkeProtMult(A::AlgIHkeBase, eltA::EltIHke, B::AlgIHkeBase, eltB::EltIHke) -> EltIHke
+intrinsic _Multiply(A::BasisIHke, eltA::EltIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
 {Fallback implementation for multiplication.}
     return false;
 end intrinsic;
@@ -242,44 +277,18 @@ end intrinsic;
 
 intrinsic Bar(elt::EltIHke) -> EltIHke
 {Perform the bar involution on elt, returning the result in the same basis as elt.}
-    return _IHkeProtBar(Parent(elt), elt);
+    // First check if there is a bar involution defined on this basis.
+    result := _Bar(Parent(elt), elt);
+    if Type(result) eq EltIHke then return result; end if;
+
+    // Convert to canonical basis, perform Bar, convert back.
+    C := CanonicalBasis(FreeModule(elt));
+    result := ToBasis(Parent(elt), C, Bar(ToBasis(C, Parent(elt), elt)));
+    error if Type(result) ne EltIHke, "Bar involution not defined on", C;
+    return result;
 end intrinsic;
 
-intrinsic _IHkeProtBar(A::AlgIHkeBase, elt::EltIHke) -> EltIHke
-{Fall-back implementation of the bar involution: convert to canonical, apply involution, convert back.}
-    C := IHeckeAlgebraCan(Parent(A));
-    return ChangeBasis(A, C, Bar(ChangeBasis(C, A, elt)));
+intrinsic _Bar(A::BasisIHke, eltA::EltIHke) -> EltIHke
+{Fall-back implementation of Bar involution.}
+    return false;
 end intrinsic;
-
-
-/////////////////////
-// Input
-
-// TODO: Move to p-can stuff? Re-evaluate at least.
-intrinsic ReadEltIHke(parent::., eltStr::MonStgElt) -> EltIHke
-{Read a printed Hecke element. The symbol used for printing the basis ("H", "C", etc) are ignored,
- and instead the given parent is used as the basis in which to interpret the string.}
-    W := CoxeterGroup(parent);
-    v := _v; // Needed for evalling the coefficient.
-    terms := AssociativeArray(W);
-    line := eltStr;
-    while true do
-        ok, _, matches := Regexp("^\\(([^)]+)\\)[^(]*\\(([^)]+)\\)( [+] (.*))?$", eltStr);
-        if not ok then
-            error if not Regexp("^[ ]*$", eltStr), "Could not parse the element", line;
-        end if;
-
-        w := matches[2] eq "id"
-            select W.0
-            else W ! [StringToInteger(matches[2][i]) : i in [1..#matches[2]]];
-
-        _AddScaledTerm(~terms, w, eval matches[1]);
-        if #matches eq 2 then
-            break;
-        end if;
-        eltStr := matches[4];
-    end while;
-    _RemoveZeros(~terms);
-    return _EltIHkeConstruct(parent, terms);
-end intrinsic;
-

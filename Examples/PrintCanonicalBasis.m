@@ -29,8 +29,8 @@ end if;
 
 W := CoxeterGroup(GrpFPCox, type);
 HAlg := IHeckeAlgebra(W);
-H := IHeckeAlgebraStd(HAlg);
-C := IHeckeAlgebraCan(HAlg);
+H := StandardBasis(HAlg);
+C := CanonicalBasis(HAlg);
 
 procedure simplePrint()
     printf "Numbering convention for type %o:\n", type;
