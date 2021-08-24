@@ -169,7 +169,7 @@ by checking the version:
     $ magma
     > AttachSpec("IHecke.spec");
     > IHeckeVersion();
-    IHecke version 2021-08-18
+    IHecke version 2021-08-24
 
 Now, create a `GrpFPCox` of your favourite type:
 
@@ -757,7 +757,7 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 
 Breaking changes are marked with a (!).
 
-- Development version
+- Version 2021-08-24 (Current)
   - Many internals relabelled.
   - Added example of how to display left cells using Graphviz.
   - Added example of defining a new basis.
@@ -765,7 +765,7 @@ Breaking changes are marked with a (!).
   - (!) Renamed `IHeckeAlgebraStd` to `StandardBasis`, and `IHeckeAlgebraCan` to `CanonicalBasis`.
   - (!) Removed the `Parent` property from bases, and replaced it with `FreeModule`. This property
       can be accessed on a basis or element by the `FreeModule(...)` intrinsic.
-- Version 2021-08-18 (Current)
+- Version 2021-08-18
   - Initial release, supporting bases `Std`, `Can`, and `PCan` of the Hecke algebra, as well as cell
       computations.
 
