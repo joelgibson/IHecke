@@ -35,6 +35,11 @@ intrinsic FreeModule(A::BasisIHke) -> IHkeAlg
     return A`FreeModule;
 end intrinsic;
 
+intrinsic Parent(A::BasisIHke) -> IHkeAlg
+{}
+    require false: "Call FreeModule() on a basis instead of Parent()";
+end intrinsic;
+
 intrinsic CoxeterGroup(A::BasisIHke) -> GrpFPCox
 {The underlying Coxeter group of the Hecke algebra.}
     return CoxeterGroup(A`FreeModule);
