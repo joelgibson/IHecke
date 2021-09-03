@@ -54,6 +54,13 @@ supp, coeffs := Support(H.1 - v*H.0);
 assert Setseq(supp) eq [W.0, W.1];
 assert coeffs eq [-v, LPoly!1];
 
+// Algebra and exponents.
+assert H ! 1 eq H.0;
+assert H.1^0 eq H.0;
+assert H.1^1 eq H.1;
+assert H.1^2 eq H.1 * H.1;
+assert (H.1 + H.2)^3 eq (H.1 + H.2)*(H.1 + H.2)*(H.1 + H.2);
+
 // Standard basis multiplication: identity.
 for w in EnumerateCoxeterGroup(W) do
     assert H.0 * H.w eq H.w;

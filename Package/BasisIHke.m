@@ -118,7 +118,8 @@ intrinsic ToBasis(A::BasisIHke, B::BasisIHke, eltB::EltIHke) -> EltIHke
 end intrinsic;
 
 intrinsic _Unit(A::BasisIHke) -> EltIHke
-{If A is the basis of an algebra, this should return the unit element.}
+{If FreeModule(A) is an algebra, then _Unit(A) should return the unit element in the A basis. This
+ must be implemented for the standard basis, but is optional to implement for other bases.}
     return false;
 end intrinsic;
 
@@ -179,11 +180,11 @@ intrinsic IsCoercible(A::BasisIHke, elt::RngElt) -> BoolElt, EltIHke
     def := StandardBasis(FreeModule(A));
     unit := _Unit(def);
     if Type(unit) eq EltIHke then
-        return true, BasisChange(A, def, unit * r);
+        return true, ToBasis(A, def, unit * r);
     end if;
 
     // We assume that there is no algebra structure.
-    return false, Sprintf("No unit map provided for", A, "to use to insert the scalar", r);
+    return false, Sprintf(A, "is not an algebra (no unit map), so cannot insert scalar", r);
 end intrinsic;
 
 intrinsic IsCoercible(A::BasisIHke, x::EltIHke) -> BoolElt, EltIHke

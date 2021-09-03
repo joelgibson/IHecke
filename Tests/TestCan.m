@@ -30,6 +30,12 @@ assert H ! C.[1,2] eq H.[1, 2] + v*H.1 + v*H.2 + v^2*H.0;
 assert H ! C.[2,1] eq H.[2, 1] + v*H.1 + v*H.2 + v^2*H.0;
 assert H ! C.[1,2,1] eq H.[1,2,1] + v*H.[1,2] + v*H.[2,1] + v^2*H.1 + v^2*H.2 + v^3*H.0;
 
+// Algebra and exponents.
+assert C ! 1 eq C.0;
+assert C.1^0 eq C.0;
+assert C.1^1 eq C.1;
+assert C.1^2 eq C.1 * C.1;
+
 // Round-trip every canonical basis element through two basis conversions, and likewise for
 // standard basis elements.
 for w in EnumerateCoxeterGroup(W) do

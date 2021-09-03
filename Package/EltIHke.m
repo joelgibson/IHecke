@@ -273,6 +273,16 @@ end intrinsic;
 
 
 ////////////////////////////
+// Exponentiation
+
+intrinsic '^'(elt::EltIHke, n::RngIntElt) -> EltIHke
+{The nth power of elt.}
+    require n ge 0: "The exponent", n, "must be nonnegative.";
+    return &*[Parent(elt) | elt : _ in [1..n]];
+end intrinsic;
+
+
+////////////////////////////
 // Bar involution (protocol)
 
 intrinsic Bar(elt::EltIHke) -> EltIHke
