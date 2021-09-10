@@ -184,7 +184,7 @@ intrinsic IsCoercible(A::BasisIHke, elt::RngElt) -> BoolElt, EltIHke
     end if;
 
     // We assume that there is no algebra structure.
-    return false, Sprintf(A, "is not an algebra (no unit map), so cannot insert scalar", r);
+    return false, Sprintf("%o %o %o", A, "is not an algebra (no unit map), so cannot insert scalar", r);
 end intrinsic;
 
 intrinsic IsCoercible(A::BasisIHke, x::EltIHke) -> BoolElt, EltIHke
