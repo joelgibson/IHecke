@@ -19,6 +19,7 @@ for cartanName in ["B2", "C3"] do
     assert BasisSymbol(pC) eq "p2C";
     assert BasisName(pC) eq "2-canonical basis";
     assert BaseRing(pC) eq BaseRing(HAlg);
+    assert pC eq pC;
 
     // Round-trip through various basis conversions.
     for w in EnumerateCoxeterGroup(W) do

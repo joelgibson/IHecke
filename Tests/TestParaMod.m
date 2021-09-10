@@ -59,6 +59,9 @@ assert throwsError(func< | aH ! 1>);
 // Should not be able to multiply inside a right module.
 assert throwsError(func< | aH.0 * aH.0>);
 
+// Should not be able to exponentiate inside a right module.
+assert throwsError(func< | aH.0^2 >);
+
 // "Tensor surjection" of the standard basis of the Hecke algebra onto the antispherical module.
 assert aH.0 * H.0 eq aH.0;
 assert aH.0 * H.1 eq aH.1;

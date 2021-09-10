@@ -134,7 +134,7 @@ end intrinsic;
 
 intrinsic 'eq'(C1::IHkeAlgPCan, C2::IHkeAlgPCan) -> BoolElt
 {}
-    return Parent(C1) eq Parent(C2) and C1`Prime eq C2`Prime and C1`CartanName eq C2`CartanName;
+    return FreeModule(C1) eq FreeModule(C2) and C1`Prime eq C2`Prime and C1`CartanName eq C2`CartanName;
 end intrinsic;
 
 
