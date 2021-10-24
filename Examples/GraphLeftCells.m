@@ -40,7 +40,7 @@ HAlg := IHeckeAlgebra(W);
 H := StandardBasis(HAlg);
 B := prime eq 0
     select CanonicalBasis(HAlg)
-      else IHeckeAlgebraPCan(HAlg, type, prime: quiet:=true);
+      else PCanonicalBasis(HAlg, type, prime: quiet:=true);
 left, right, twoSided := Cells(B);
 
 // Show a Coxter word in brief form, eg "id" or "121".

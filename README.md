@@ -449,7 +449,7 @@ future version of `IHecke`, it will only return minimal generating sets for the 
 `IHecke` comes bundled with some pre-calculated p-canonical bases. The algorithm which actually
 computes these basis elements is quite complicated and is not a part of `IHecke`, so there is no
 general method of constructing a p-canonical basis element: if it's not pre-calculated you're out
-of luck. Running `IHeckeAlgebraPCan` with a Cartan type and a prime will do one of three things:
+of luck. Running `PCanonicalBasis` with a Cartan type and a prime will do one of three things:
 
 1. Print `p-canonical basis ... was loaded from the database`, and return a p-canonical basis
     object, loaded from one of the pre-calculated datasets.
@@ -474,8 +474,7 @@ Coxeter group. In short, B_n and C_n have different canonical bases).
     > HAlg := IHeckeAlgebra(W);
     > H := StandardBasis(HAlg);
     > C := CanonicalBasis(HAlg);
-    > pC := IHeckeAlgebraPCan(HAlg, "B2", 2);
-    The 2-canonical basis for type B2 was loaded from the database.
+    > pC := PCanonicalBasis(HAlg, "B2", 2);
 
 As with the other bases, all of the interest is in converting between bases:
 
@@ -758,8 +757,12 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 # Changelog
 
 Breaking changes are marked with a (!).
+We aim to keep these to a minimum once the package is in use.
 
-- Version 2021-09-10 (Current)
+- DEVELOPMENT VERSION
+  - (!) Renamed `IHeckeAlgebraPCan` to `PCanonicalBasis` for consistency.
+  - Changed the default behaviour of `PCanonicalBasis` to `quiet`.
+- Version 2021-09-10
   - Added exponentiation operator `^`, for nonnegative powers.
 - Version 2021-08-24
   - Many internals relabelled.
