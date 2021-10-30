@@ -169,7 +169,7 @@ by checking the version:
     $ magma
     > AttachSpec("IHecke.spec");
     > IHeckeVersion();
-    IHecke version 2021-08-24
+    IHecke version 2021-09-10
 
 Now, create a `GrpFPCox` of your favourite type:
 
@@ -563,7 +563,7 @@ Coercion from scalars only works for the zero scalar.
 
     >> aH ! 1;
           ^
-    Runtime error in '!': No unit map provided for
+    Runtime error in '!': Standard basis of Antispherical module of type B4, parabolic [ 1, 2, 3 ], symbol aH is not an algebra (no unit map), so cannot insert scalar 1
     LHS: ASModIHkeStd
     RHS: RngIntElt
 
@@ -759,7 +759,9 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 
 Breaking changes are marked with a (!).
 
-- Version 2021-08-24 (Current)
+- Version 2021-09-10 (Current)
+  - Added exponentiation operator `^`, for nonnegative powers.
+- Version 2021-08-24
   - Many internals relabelled.
   - Added example of how to display left cells using Graphviz.
   - Added example of defining a new basis.

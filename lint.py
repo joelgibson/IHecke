@@ -41,7 +41,7 @@ def search_file(pattern, fname):
 
 
 # Check that version numbers line up
-code_date = search_file(r'return.*version.*(\d\d\d\d-\d\d-\d\d)', 'Package/IHkeAlg.m')
+code_date = search_file(r'return.*version.*(\d\d\d\d-\d\d-\d\d)', 'Package/FModIHke.m')
 readme_date = search_file(r'(\d\d\d\d-\d\d-\d\d).*current', 'README.md')
 if code_date is None:
     print("No version date found in the code")
