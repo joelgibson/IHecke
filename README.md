@@ -779,6 +779,8 @@ We aim to keep these to a minimum once the package is in use.
 
 # TODO
 
+- (High priority) Allow the multiplication `C(w) * C.s` to be driven by a table of mu-coefficients
+    (in other words, a W-graph) so that this special case is extremely fast.
 - (Low priority) Perform transitive reduction on the cell graph.
 - (Low priority) Allow more custom formatting of the output, such as choosing basis names, and
     choosing formatting of Coxeter group elements.
