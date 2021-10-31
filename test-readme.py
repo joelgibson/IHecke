@@ -16,9 +16,12 @@ The output of this tool is a diff-like-thing (it's not the easiest thing to read
 vastly improved).
 """
 
+import bisect
+import difflib
+import itertools
+import operator
 import re
 import subprocess
-import difflib
 
 TEST_PATTERN = re.compile(r'<!-- BEGIN TEST ([^ ]+?) -->\n(.*)\n<!-- END TEST \1 -->', re.DOTALL)
 
@@ -27,7 +30,7 @@ def filter_empty(lines):
     return [line for line in lines if line]
 
 
-def run_test(test_name, lines):
+def run_test(test_name, lines, line_number, file_name):
     # Ensure the first line is a command we know.
     commands = {
         '$ magma': ['magma', '-b']
@@ -58,21 +61,29 @@ def run_test(test_name, lines):
         filter_empty(output_lines),
     )
     if all(line.startswith('  ') for line in delta):
-        print(f"{test_name} passed")
+        print(f"Test '{test_name}' passed")
     else:
-        print(f"{test_name} failed: showing diff from expected to actual output:")
+        print(f"Test '{test_name}' failed: {file_name}:{line_number}")
+        print(f"Showing diff from expected to actual output:")
         print('\n'.join(delta))
 
 
 def run_tests_in_file(fname):
     with open(fname) as f:
-        for match in TEST_PATTERN.finditer(f.read()):
-            name, content = match.groups()
-            code_lines = [
-                line[4:] for line in content.split('\n')
-                if line.startswith(' '*4)
-            ]
-            run_test(name, code_lines)
+        content = f.read()
+
+    # Cumulative sum of character lengths per line, so that we can figure out what line a
+    # character is on.
+    linechars = list(itertools.accumulate((len(line) + 1 for line in content.split('\n')), operator.add))
+
+    for match in TEST_PATTERN.finditer(content):
+        name, content = match.groups()
+        code_lines = [
+            line[4:] for line in content.split('\n')
+            if line.startswith(' '*4)
+        ]
+        line_number = 1 + bisect.bisect_right(linechars, match.start())
+        run_test(name, code_lines, line_number, fname)
 
 
 if __name__ == '__main__':

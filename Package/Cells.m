@@ -146,18 +146,27 @@ intrinsic Cells(B::BasisIHke) -> Digraph, Digraph, Digraph
 {Return the left, right, and two-sided cells of B. Each collection of cells is returned as a
  directed acyclic graph, whose vertices are sets of Coxeter group elements, forming a partition of
  the Coxeter group. The transitive closure of the graph gives the cell order.}
+    // The cell edges are calculated by changing into the canonical basis, right or left multiplying
+    // by a generator, and changing back to the target basis. This is because the bases that we're
+    // running cell computations for (canonical or p-canonical bases) have shortish expressions in
+    // the canonical basis, and there is a special-case multiplication rule for multiplication by
+    // a canonical basis generator. Otherwise, the fallback default for most bases would be to change
+    // into the standard basis, multiply there, and change back, which would be slow. For instance,
+    // calculating the cells of the 2-canonical basis in C4 takes over a minute using the naive
+    // strategy, and under a second using this strategy.
     W := CoxeterGroup(B);
+    C := CanonicalBasis(FreeModule(B));
     Welts := EnumerateCoxeterGroup(W);
     leftEdges := {};
     rightEdges := {};
     for w in Welts do
         for s in [1..Rank(W)] do
-            left := B ! (B.s * B.w);
+            left := B ! (C.s * (C ! B.w));
             for u in Support(left) do
                 Include(~leftEdges, [w, u]);
             end for;
 
-            right := B ! (B.w * B.s);
+            right := B ! ((C ! B.w) * C.s);
             for u in Support(right) do
                 Include(~rightEdges, [w, u]);
             end for;

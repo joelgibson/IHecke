@@ -63,7 +63,7 @@ function pCanIsDefinitelyCan(type, rank, prime)
     end if;
 end function;
 
-intrinsic IHeckeAlgebraPCan(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := false) -> BasisIHke
+intrinsic PCanonicalBasis(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := true) -> BasisIHke
 {Load a p-canonical basis from a file, or check against a list of rules to check if this p-canonical
  basis is equal to the canonical basis. If neither of these can be determined, throw an error.
 
@@ -126,6 +126,11 @@ intrinsic IHeckeAlgebraPCan(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntE
     end if;
 
     return basis;
+end intrinsic;
+
+intrinsic IHeckeAlgebraPCan(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := true) -> BasisIHke
+{Alias for PCanonicalBasis.}
+    return PCanonicalBasis(HAlg, cartanName, prime : quiet := quiet);
 end intrinsic;
 
 

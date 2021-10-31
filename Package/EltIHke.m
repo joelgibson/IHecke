@@ -238,6 +238,11 @@ end intrinsic;
 
 intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
 {}
+    // In the case we are multiplying by zero, do nothing (might trigger a basis change otherwise).
+    if IsZero(eltA) or IsZero(eltB) then
+        return Parent(eltA) ! 0;
+    end if;
+
     result := _Multiply(Parent(eltA), eltA, Parent(eltB), eltB);
     if Type(result) eq EltIHke then
         return result;

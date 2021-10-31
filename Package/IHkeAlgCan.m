@@ -168,6 +168,76 @@ intrinsic _ToBasis(C::IHkeAlgCan, H::IHkeAlgStd, w::GrpFPCoxElt) -> EltIHke
     return _StdToCan(H, C, w);
 end intrinsic;
 
+intrinsic _Multiply(C::IHkeAlgCan, eltA::EltIHke, B::IHkeAlgCan, eltB::EltIHke) -> EltIHke
+{Intercept left or right multiplication by the identity or C(s), and implement it in terms
+ of the mu-coefficients. Otherwise return false (defers to standard multiplication).}
+    assert C eq B;
+    H := StandardBasis(FreeModule(C));
+    W := CoxeterGroup(C);
+    L := BaseRing(C);
+
+    // Two special cases: multiplication by the identity, or by C(s) for a simple generator s.
+    // For multiplication by C(s) we have the formulas
+    //   C(s) C(w) = (v + v^-1) C(w) if sw < w.
+    //   C(s) C(w) = C(sw) + sum[z | sz < z]mu(z, w)C(z).
+
+    if #eltA`Terms eq 1 then
+        s := Rep(Keys(eltA`Terms));
+        scale := eltA`Terms[s];
+
+        if #s eq 0 then
+            return scale * eltB;
+        end if;
+        if #s eq 1 then
+            terms := AssociativeArray(W);
+            for w -> coeff in eltB`Terms do
+                if #(s*w) lt #w then
+                    _AddScaledTerm(~terms, w, scale * coeff * (L.1 + (L.1)^-1));
+                else
+                    _AddScaledTerm(~terms, s*w, scale * coeff);
+                    mu := _MuCoeffs(H, C, w);
+                    for z -> mucoeff in mu do
+                        if #(s*z) lt #z then
+                            _AddScaledTerm(~terms, z, mucoeff * scale * coeff);
+                        end if;
+                    end for;
+                end if;
+            end for;
+            _RemoveZeros(~terms);
+            return EltIHkeConstruct(C, terms);
+        end if;
+    end if;
+
+    if #eltB`Terms eq 1 then
+        s := Rep(Keys(eltB`Terms));
+        scale := eltB`Terms[s];
+
+        if #s eq 0 then
+            return scale * eltA;
+        end if;
+        if #s eq 1 then
+            terms := AssociativeArray(W);
+            for w -> coeff in eltA`Terms do
+                if #(w*s) lt #w then
+                    _AddScaledTerm(~terms, w, scale * coeff * (L.1 + (L.1)^-1));
+                else
+                    _AddScaledTerm(~terms, w*s, scale * coeff);
+                    mu := _MuCoeffs(H, C, w);
+                    for z -> mucoeff in mu do
+                        if #(z*s) lt #z then
+                            _AddScaledTerm(~terms, z, mucoeff * scale * coeff);
+                        end if;
+                    end for;
+                end if;
+            end for;
+            _RemoveZeros(~terms);
+            return EltIHkeConstruct(C, terms);
+        end if;
+    end if;
+
+    return false;
+end intrinsic;
+
 
 //////////////////////////////////////////////
 // Canonical basis of the antispherical module

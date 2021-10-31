@@ -1,6 +1,6 @@
 intrinsic IHeckeVersion() -> MonStgElt
 {Report version information for IHecke.}
-    return "IHecke version 2021-09-10";
+    return "IHecke version 2021-11-01";
 end intrinsic;
 
 

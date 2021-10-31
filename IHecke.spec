@@ -9,6 +9,7 @@
         EltIHke.m
         FModIHke.m
         Shortcuts.m
+        IHkeAlgLit.m
     }
     PCanBases
     {
