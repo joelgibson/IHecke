@@ -11,7 +11,7 @@ for cartanName in ["B2", "C3"] do
     HAlg := IHeckeAlgebra(W);
     H := StandardBasis(HAlg);
     C := CanonicalBasis(HAlg);
-    pC := PCanonicalBasis(HAlg, cartanName, 2: quiet := true);
+    pC := IHeckeAlgebraPCan(HAlg, cartanName, 2: quiet := true);
 
     // p-canonical basis accessors
     assert FreeModule(pC) eq HAlg;
