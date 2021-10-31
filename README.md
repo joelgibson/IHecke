@@ -1,4 +1,4 @@
-# IHecke
+# IHecke <!-- omit in toc -->
 
 `IHecke` is a package for [Magma] implementing Iwahori-Hecke algebras. It implements the standard
 and canonical bases of the Hecke algebra (Using the Soergel convention, so a reader of the book
@@ -27,18 +27,18 @@ algebra", we really mean the Iwahori-Hecke algebra.
 
 
 - [Tutorial](#tutorial)
-  * [Installation](#installation)
-  * [Working with Coxeter groups in Magma](#working-with-coxeter-groups-in-magma)
-  * [The standard basis](#the-standard-basis)
-  * [The canonical basis](#the-canonical-basis)
-  * [Operations on bases and elements](#operations-on-bases-and-elements)
-  * [Cells](#cells)
-  * [The p-canonical basis](#the-p-canonical-basis)
-  * [Antispherical and spherical modules](#antispherical-and-spherical-modules)
+  - [Installation](#installation)
+  - [Working with Coxeter groups in Magma](#working-with-coxeter-groups-in-magma)
+  - [The standard basis](#the-standard-basis)
+  - [The canonical basis](#the-canonical-basis)
+  - [Common operations](#common-operations)
+  - [Cells](#cells)
+  - [The p-canonical basis](#the-p-canonical-basis)
+  - [Antispherical and spherical modules](#antispherical-and-spherical-modules)
 - [Examples](#examples)
-  * [Printing basis elements](#printing-basis-elements)
-  * [Displaying cells and p-cells](#displaying-cells-and-p-cells)
-  * [Defining a new basis](#defining-a-new-basis)
+  - [Printing basis elements](#printing-basis-elements)
+  - [Displaying cells and p-cells](#displaying-cells-and-p-cells)
+  - [Defining a new basis](#defining-a-new-basis)
 - [Changelog](#changelog)
 - [TODO](#todo)
 
@@ -759,8 +759,15 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 Breaking changes are marked with a (!).
 We aim to keep these to a minimum once the package is in use.
 
-- DEVELOPMENT VERSION
-  - (!) Renamed `IHeckeAlgebraPCan` to `PCanonicalBasis` for consistency.
+- Version 2021-11-01 (Current)
+  - Added an experimental "literal" basis type (a basis specified by a partial table). I will wait
+      to see how it plays out in other projects before making it a feature.
+  - Cell computations convert to the canonical basis, use right/left multiplication by a generator,
+      and convert back to the specified basis. Together with the optimisation below, calculating
+      cells is much faster.
+  - Added an optimisation for left/right multiplication by a canonical generator `C.i` inside
+      the canonical basis, using the mu-coefficients.
+  - Renamed `IHeckeAlgebraPCan` to `PCanonicalBasis` for consistency. The old name still works.
   - Changed the default behaviour of `PCanonicalBasis` to `quiet`.
 - Version 2021-09-10
   - Added exponentiation operator `^`, for nonnegative powers.

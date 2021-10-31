@@ -128,6 +128,11 @@ intrinsic PCanonicalBasis(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt
     return basis;
 end intrinsic;
 
+intrinsic IHeckeAlgebraPCan(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := true) -> BasisIHke
+{Alias for PCanonicalBasis.}
+    return PCanonicalBasis(HAlg, cartanName, prime : quiet := quiet);
+end intrinsic;
+
 
 ////////////
 // Overrides
