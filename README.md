@@ -787,7 +787,10 @@ We aim to keep these to a minimum once the package is in use.
 # TODO
 
 - (High priority) Allow the multiplication `C(w) * C.s` to be driven by a table of mu-coefficients
-    (in other words, a W-graph) so that this special case is extremely fast.
+    (in other words, a W-graph) so that this special case is extremely fast. By induction (and the
+    standard multiplication formula), this means that multiplication within the canonical basis can
+    be driven entirely by the mu table.
+- (Medium priority) Error messages when doing `aC . w` for non-antispherical `w` are bad. Perhaps attach a formal set to a free module so that better error reporting can be done in the `'.'` intrinsic.
 - (Low priority) Perform transitive reduction on the cell graph.
 - (Low priority) Allow more custom formatting of the output, such as choosing basis names, and
     choosing formatting of Coxeter group elements.
