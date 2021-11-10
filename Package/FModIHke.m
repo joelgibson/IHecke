@@ -1,3 +1,5 @@
+declare verbose IHecke, 3;
+
 intrinsic IHeckeVersion() -> MonStgElt
 {Report version information for IHecke.}
     return "IHecke version 2021-11-01";
