@@ -18,7 +18,11 @@ declare attributes CelIHke:
     // The quotient digraph, whose transitive closure gives the cell ordering. In the S3 example,
     // the digraph is a path 1 -> 2 -> 3. This quotient is non-canonical, but its transitive
     // closure (or transitive reduction) are canonical.
-    QuotGraph;
+    QuotGraph,
+
+    // The transitive closure relation of the quotient diagraph, so that the element
+    // QuotReachable[i][j] is only defined in QuotReachable[i] if i <= j in the order.
+    QuotReachable;
 
 
 ////////////////////////
@@ -44,9 +48,7 @@ intrinsic CellLe(cel::CelIHke, x::GrpFPCoxElt, y::GrpFPCoxElt) -> BoolElt
 {Given a cell decomposition and a pair x, y, determine whether x <= y in the cell order.}
     xIdx := cel`CoxToCompIdx[x];
     yIdx := cel`CoxToCompIdx[y];
-    verts := VertexSet(cel`QuotGraph);
-    ok := PathExists(verts ! xIdx, verts ! yIdx);
-    return ok;
+    return IsDefined(cel`QuotReachable[xIdx], yIdx);
 end intrinsic;
 
 intrinsic GeneratingEdges(cel::CelIHke) -> SeqEnum[SetEnum[GrpFPCox]]
@@ -133,12 +135,16 @@ function _CreateCel(Basis, CellType, Welts, digraph)
     end for;
     QuotGraph := Digraph< #Components | edges : SparseRep := true>;
 
+    // Speed up cell order comparisons using the transitive closure of the quotient graph.
+    QuotReachable := AllPairsShortestPaths(QuotGraph);
+
     cel := New(CelIHke);
     cel`Basis := Basis;
     cel`CellType := CellType;
     cel`Components := Components;
     cel`CoxToCompIdx := CoxToCompIdx;
     cel`QuotGraph := QuotGraph;
+    cel`QuotReachable := QuotReachable;
     return cel;
 end function;
 

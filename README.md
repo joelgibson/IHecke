@@ -759,7 +759,10 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 Breaking changes are marked with a (!).
 We aim to keep these to a minimum once the package is in use.
 
-- Version 2021-11-01 (Current)
+- Development version
+  - Added a faster Standard x Canonical -> Canonical multiplication.
+  - The cell order relations are precomputed, making cell order testing much faster.
+- Version 2021-11-01
   - Added an experimental "literal" basis type (a basis specified by a partial table). I will wait
       to see how it plays out in other projects before making it a feature.
   - Cell computations convert to the canonical basis, use right/left multiplication by a generator,
