@@ -5,6 +5,7 @@ declare type IHkeAlgBaseCan: BasisIHke;
 declare attributes IHkeAlgBaseCan:
     CanInStdCache,
     StdInCanCache,
+    StdMultCanCache,
     MuCache,
     Para,
     Eig;
@@ -18,6 +19,7 @@ function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
         _BasisIHkeInit(~basis, fmod, symbol, name);
         basis`CanInStdCache := AssociativeArray();
         basis`StdInCanCache := AssociativeArray();
+        basis`StdMultCanCache := AssociativeArray();
         basis`MuCache := AssociativeArray(CoxeterGroup(fmod));
         basis`Para := para;
         basis`Eig := eig;
@@ -248,6 +250,35 @@ intrinsic _Multiply(C::IHkeAlgCan, eltA::EltIHke, B::IHkeAlgCan, eltB::EltIHke) 
     return false;
 end intrinsic;
 
+// Returns the terms of H(s) * C(w) in the C basis. I'm not sure whether this is really worth
+// the tradeoff for caching...
+function StdMultCan(H, C, s, w)
+    pair := <s, w>;
+    if IsDefined(C`StdMultCanCache, pair) then
+        return C`StdMultCanCache[pair];
+    end if;
+
+    W := CoxeterGroup(C);
+    L := BaseRing(C);
+    v := L.1;
+    Ws := W.s;
+    terms := AssociativeArray(W);
+    if Ws * w lt w then
+        _AddScaledTerm(~terms, w,  v^-1);
+    else
+        _AddScaledTerm(~terms, w, -v);
+        _AddScaledTerm(~terms, Ws * w, L ! 1);
+        for z -> coeffMu in _MuCoeffs(H, C, w) do
+            if Ws * z lt z then
+                _AddScaledTerm(~terms, z, coeffMu);
+            end if;
+        end for;
+    end if;
+    _RemoveZeros(~terms);
+    C`StdMultCanCache[pair] := terms;
+    return terms;
+end function;
+
 intrinsic _Multiply(H::IHkeAlgStd, eltH::EltIHke, C::IHkeAlgCan, eltC::EltIHke) -> EltIHke
 {Standard x Canonical -> Canonical multiplication. Given that we have tables of mu-coefficients,
  this multiplication can be done quickly by factorising H(w) = H(s1)...H(sn), and then using
@@ -270,20 +301,9 @@ intrinsic _Multiply(H::IHkeAlgStd, eltH::EltIHke, C::IHkeAlgCan, eltC::EltIHke) 
         terms := eltC`Terms;
         for s in Reverse(Eltseq(wH)) do
             // terms <- (C(s) - v)*terms;
-            Ws := W.s;
             newTerms := AssociativeArray(W);
             for wC -> coeffC in terms do
-                if Ws * wC lt wC then
-                    _AddScaledTerm(~newTerms, wC,  v^-1 * coeffC);
-                else
-                    _AddScaledTerm(~newTerms, wC, -v*coeffC);
-                    _AddScaledTerm(~newTerms, Ws * wC, coeffC);
-                    for z -> coeffMu in _MuCoeffs(H, C, wC) do
-                        if Ws * z lt z then
-                            _AddScaledTerm(~newTerms, z, coeffMu * coeffC);
-                        end if;
-                    end for;
-                end if;
+                _AddScaled(~newTerms, StdMultCan(H, C, s, wC), coeffC);
             end for;
             _RemoveZeros(~newTerms);
             terms := newTerms;
