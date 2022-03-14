@@ -1,5 +1,4 @@
-// Test creation of the spherical and antispherical modules, and the action of the Hecke algebra
-// upon these modules.
+// Test creation of the spherical and antispherical modules, and the action of the Hecke algebra upon these modules.
 
 SetQuitOnError(true);
 SetColumns(0);

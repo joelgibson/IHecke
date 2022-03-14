@@ -1,3 +1,5 @@
+// Test the standard functions for the Literal basis.
+
 SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);

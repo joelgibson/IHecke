@@ -8,8 +8,10 @@ import re
 
 SOURCE_FILES = [
     *glob.glob("Package/*.m"),
+    *glob.glob("MuCoeffs/*.m"),
     *glob.glob("PCanBases/*.m"),
     *glob.glob("Tests/*.m"),
+    *glob.glob("Examples/*.m"),
 ]
 
 def check_file(fname: str):

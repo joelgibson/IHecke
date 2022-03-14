@@ -8,7 +8,8 @@ declare attributes IHkeAlgBaseCan:
     StdMultCanCache,
     MuCache,
     Para,
-    Eig;
+    Eig,
+    MuTable;
 
 // Factory function for basis types extending IHkeAlgBaseCan. Returns second argument true if the
 // basis was just created, or false if it was loaded from the cache.
@@ -62,6 +63,12 @@ function _MuCoeffs(H, C, w)
     W := CoxeterGroup(C);
     if #w eq 0 then
         return AssociativeArray(W);
+    end if;
+
+    if assigned C`MuTable then
+        mu := _MuCoeffFromTable(C`MuTable, w);
+        C`MuCache[w] := mu;
+        return mu;
     end if;
 
     Cw := _ToBasis(H, C, w);
@@ -157,14 +164,14 @@ end intrinsic;
 
 declare type IHkeAlgCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic CanonicalBasis(HAlg::IHkeAlg) -> IHkeAlgCan
+intrinsic CanonicalBasis(HAlg::IHkeAlg : UseTable := true) -> IHkeAlgCan
 {The canonical basis of the Hecke algebra.}
     basis, justCreated := _GetOrCreateBasis(HAlg, IHkeAlgCan, "C", "Canonical basis", [], 0);
-    if justCreated then
-        ok, mus := _LoadMuCoefficients(CoxeterGroup(HAlg));
+    if justCreated and UseTable then
+        ok, table := _LoadMuTable(CoxeterGroup(HAlg));
         if ok then
-            basis`MuCache := mus;
-            vprintf IHecke: "Mu coefficients for %o loaded from the database\n", CartanName(CoxeterGroup(HAlg));
+            basis`MuTable := table;
+            vprintf IHecke: "IHecke: Mu coefficients for %o loaded from the database\n", CartanName(CoxeterGroup(HAlg));
         end if;
     end if;
     return basis;

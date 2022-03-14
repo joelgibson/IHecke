@@ -1,3 +1,5 @@
+// Test that small cell computations are working.
+
 SetQuitOnError(true);
 SetColumns(0);
 SetAssertions(3);

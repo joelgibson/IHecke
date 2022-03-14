@@ -1,5 +1,4 @@
-// Test creation of a Hecke algebra and its standard basis, and basic operations within the standard
-// basis.
+// Test creation of a Hecke algebra and its standard basis, and basic operations within the standard basis.
 
 SetQuitOnError(true);
 SetColumns(0);

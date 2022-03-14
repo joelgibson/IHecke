@@ -1,3 +1,9 @@
+// MuCoeffs.m is an API for reading tables of Mu-coefficients and loading them into the rest of IHecke.
+//  1. _LoadMuTable(W) returns (true, table) if a relevant table exists, and false otherwise. The table should be
+//     treated as an opaque object.
+//  2. _MuCoeffFromTable(table, w) returns an associative array mapping elements x of W to mu(x, w). Zeros do not appear
+//     in this map.
+
 // Returns the path to the directory containing this file: returns the directory with no trailing slash.
 // Copied from the MAGMA interfaces to Growl, Howl, and Boxcar by Alexander Kasprzyk and Dan Roozemond.
 function mucoeff_dir()
@@ -17,39 +23,55 @@ function mucoeff_dir()
     end try;
 end function;
 
+MuTableRF := recformat< MuTable : MtrxSprs, WBij : SetIndx>;
+
 function parseMuFile(W, fileContents)
-    lines := Split(fileContents, "\n");
+    data := eval fileContents;
+    error if data`CoxeterMat ne CoxeterMatrix(W), "Coxeter matrices are incompatible";
 
-    // The first line gives all the reduced expressions, in index order, with indices starting from 0.
-    index := [W ! word : word in eval lines[1]];
+    WToIndex := AssociativeArray(W);
+    WToIndex[W.0] := 1;
+    IndexToW := AssociativeArray(Integers());
+    IndexToW[1] := W.0;
+    mult := data`ShortLexMultTable;
+    for idx in [1..Nrows(mult)] do
+        w := IndexToW[idx];
 
-    // The following lines are in index order, and map elements to arrays of pairs, so that on the
-    // line corresponding to w for example, we have
-    // [x, mu(x, w), y, mu(y, w), ...] for each nonzero value of mu.
-    mus := AssociativeArray(W);
-    for i -> pairs in [eval line : line in lines[2..#lines]] do
-        w := index[i];
-        mus[w] := AssociativeArray(W);
-        for j in [1 .. #pairs by 2] do
-            x := index[pairs[j] + 1];
-            mus[w][x] := pairs[j+1];
+        // Generate any new w elements appearing on this row.
+        for s in Support(mult, idx) do
+            sw := W.s * w;
+            WToIndex[sw] := mult[idx, s];
+            IndexToW[mult[idx, s]] := sw;
         end for;
     end for;
 
-    return mus;
+    // Write out an indexed set for later reference.
+    WBij := {@ IndexToW[i] : i in [1 .. #IndexToW] @};
+    return rec<MuTableRF | MuTable:=data`MuTable, WBij:=WBij>;
 end function;
 
-intrinsic _LoadMuCoefficients(W::GrpFPCox) -> BoolElt, Assoc
-{Attempt to load the mu-coefficients for a given Coxeter group from the database in IHecke, returning
- a status code (false: not found, true: available), and an associative array mapping group elements
- to more associative arrays, so that mu(x, y) is at [y][x] in the resulting data structure.}
-    // Note that the Cartan name of type Cn is Bn.
+intrinsic _MuCoeffFromTable(table::Rec, w::GrpFPCoxElt) -> Assoc
+{Retrieve the vector mu(-, w) from the table.}
+    mu := AssociativeArray(Parent(w));
+    for x in BruhatDescendants(w) do
+        mu[x] := 1;
+    end for;
+
+    wIdx := Index(table`WBij, w);
+    for xIdx in Support(table`MuTable, wIdx) do
+        mu[table`WBij[xIdx]] := table`MuTable[wIdx, xIdx];
+    end for;
+
+    return mu;
+end intrinsic;
+
+intrinsic _LoadMuTable(W::GrpFPCox) -> BoolElt, Assoc
+{Load the mu-table for a Coxeter group, returning (true, table) if one exists, and (false, false) otherwise.}
     path := mucoeff_dir() cat "/" cat CartanName(W) cat ".mus";
     ok, io := OpenTest(path, "r");
     if not ok then
-        return false, AssociativeArray(W);
+        return false, false;
     end if;
 
     return true, parseMuFile(W, Read(io));
 end intrinsic;
-

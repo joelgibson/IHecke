@@ -1,1 +1,3 @@
 *.sig
+MuCoeffs/*.mus
+.vscode/
