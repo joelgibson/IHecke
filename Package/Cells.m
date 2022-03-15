@@ -75,7 +75,7 @@ end intrinsic;
 intrinsic EnumerateCoxeterGroup(W::GrpFPCox, I::SeqEnum[RngIntElt]: lengthBound:=-1, quiet:=false) -> SetIndx[GrpFPCoxElt]
 {The same as EnumerateCoxeterGroup, but enumerating only the I-minimal elements.}
     warningLimit := 1000000;
-    error if lengthBound lt 0 and not IsCoxeterFinite(CartanName(W)),
+    error if lengthBound lt 0 and not IsCoxeterFinite(CoxeterMatrix(W)),
         "Cannot enumerate an infinite group.";
     lengthBound := lengthBound lt 0
         select #LongestElement(W)

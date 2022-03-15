@@ -171,7 +171,7 @@ intrinsic CanonicalBasis(HAlg::IHkeAlg : UseTable := true) -> IHkeAlgCan
         ok, table := _LoadMuTable(CoxeterGroup(HAlg));
         if ok then
             basis`MuTable := table;
-            vprintf IHecke: "IHecke: Mu coefficients for %o loaded from the database\n", CartanName(CoxeterGroup(HAlg));
+            vprintf IHecke: "IHecke: Mu coefficients for %o loaded from the database\n", _IHkeCartanName(CoxeterGroup(HAlg));
         end if;
     end if;
     return basis;

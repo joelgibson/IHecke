@@ -67,7 +67,7 @@ end intrinsic;
 
 intrinsic _LoadMuTable(W::GrpFPCox) -> BoolElt, Assoc
 {Load the mu-table for a Coxeter group, returning (true, table) if one exists, and (false, false) otherwise.}
-    path := mucoeff_dir() cat "/" cat CartanName(W) cat ".mus";
+    path := mucoeff_dir() cat "/" cat _IHkeCartanName(W) cat ".mus";
     ok, io := OpenTest(path, "r");
     if not ok then
         return false, false;

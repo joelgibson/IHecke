@@ -169,7 +169,7 @@ by checking the version:
     $ magma
     > AttachSpec("IHecke.spec");
     > IHeckeVersion();
-    IHecke version 2021-09-10
+    IHecke version 2021-11-01
 
 Now, create a `GrpFPCox` of your favourite type:
 
@@ -352,6 +352,17 @@ In order to extract a particular coefficient, use the `Coefficient` function.
     v^-1 - v
     > Coefficient(H.[2,1] * H.1, W.1);
     0
+
+The `Coefficient` function can be given an extra argument to extract the v^d coefficient from the Laurent polynomial.
+
+    > Coefficient(H.[2,1] * H.1, W![2,1]);
+    v^-1 - v
+    > Coefficient(H.[2,1] * H.1, W![2,1], 1);
+    -1
+    > Coefficient(H.[2,1] * H.1, W![2,1], 0);
+    0
+    > Coefficient(H.[2,1] * H.1, W![2,1], -1);
+    1
 
 The Kazhdan-Lusztig bar involution can be calculated using `Bar`.
 
@@ -762,6 +773,8 @@ We aim to keep these to a minimum once the package is in use.
 - Development version
   - Added a faster Standard x Canonical -> Canonical multiplication.
   - The cell order relations are precomputed, making cell order testing much faster.
+  - Fixed a crash when creating a Hecke algebra for a group not of affine or finite type.
+  - Added a third argument to `Coefficient()` for extracting the v^d term.
 - Version 2021-11-01
   - Added an experimental "literal" basis type (a basis specified by a partial table). I will wait
       to see how it plays out in other projects before making it a feature.
@@ -789,6 +802,9 @@ We aim to keep these to a minimum once the package is in use.
 
 # TODO
 
+- (High priority) Enhance the Literal basis
+  - Allow it to be a partial basis (eg for affine groups).
+  - Make some standard way to save and restore it, probably through MAGMA object files.
 - (High priority) Allow the multiplication `C(w) * C.s` to be driven by a table of mu-coefficients
     (in other words, a W-graph) so that this special case is extremely fast. By induction (and the
     standard multiplication formula), this means that multiplication within the canonical basis can

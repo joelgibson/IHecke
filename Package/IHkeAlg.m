@@ -8,7 +8,7 @@ intrinsic IHeckeAlgebra(W::GrpFPCox) -> IHkeAlg
     // Magma has no Laurent polynomials, but we can use the polynomial part of the series ring.
     LPolyRing<v> := LaurentSeriesRing(Integers());
     HAlg := New(IHkeAlg);
-    name := Sprintf("Iwahori-Hecke algebra of type %o", CartanName(W));
+    name := Sprintf("Iwahori-Hecke algebra of type %o", _IHkeCartanName(W));
     _FModIHkeInit(~HAlg, LPolyRing, name, W);
     return HAlg;
 end intrinsic;
@@ -34,7 +34,7 @@ intrinsic IHeckeASMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeASMod
     LPolyRing<v> := LaurentSeriesRing(Integers());
 
     asmod := New(IHkeASMod);
-    name := Sprintf("Antispherical module of type %o, parabolic %o", CartanName(W), I);
+    name := Sprintf("Antispherical module of type %o, parabolic %o", _IHkeCartanName(W), I);
     _FModIHkeInit(~asmod, LPolyRing, name, W);
     asmod`Para := I;
     return asmod;
@@ -66,7 +66,7 @@ intrinsic IHeckeSMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeSMod
     LPolyRing<v> := LaurentSeriesRing(Integers());
 
     smod := New(IHkeSMod);
-    name := Sprintf("Spherical module of type %o, parabolic %o", CartanName(W), I);
+    name := Sprintf("Spherical module of type %o, parabolic %o", _IHkeCartanName(W), I);
     _FModIHkeInit(~smod, LPolyRing, name, W);
     smod`Para := I;
     return smod;

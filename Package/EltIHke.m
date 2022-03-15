@@ -66,11 +66,20 @@ intrinsic FreeModule(elt::EltIHke) -> FModIHke
 end intrinsic;
 
 intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt) -> RngElt
-{Return the coefficient of w in the linear combination.}
+{Return the coefficient of B(w) in the linear combination, where B is the basis of elt.}
     if IsDefined(elt`Terms, w) then
         return elt`Terms[w];
     else
         return BaseRing(Parent(elt)) ! 0;
+    end if;
+end intrinsic;
+
+intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt, d::RngIntElt) -> RngIntElt
+{Return the coefficient of B(w) v^d in the linear combination, where B is the basis of elt.}
+    if IsDefined(elt`Terms, w) then
+        return Coefficient(elt`Terms[w], d);
+    else
+        return 0;
     end if;
 end intrinsic;
 

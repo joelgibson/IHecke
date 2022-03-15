@@ -37,6 +37,11 @@ assert Parent(H.0) eq H;
 assert Coefficient(H.0, W.0) eq 1;
 assert Coefficient(H.0, W.1) eq 0;
 
+// Coefficient for B(w) v^d.
+assert Coefficient(H.0, W.0, 0) eq 1;
+assert Coefficient(H.0, W.0, 1) eq 0;
+assert Coefficient(H.0 -3 * v^2 * H.1, W.1, 2) eq -3;
+
 // Standard basis coercion from scalars.
 assert IsZero(H ! 0);
 assert not IsZero(H ! 1);
