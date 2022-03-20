@@ -18,6 +18,16 @@ intrinsic 'eq'(HAlg1::IHkeAlg, HAlg2::IHkeAlg) -> BoolElt
     return CoxeterGroup(HAlg1) cmpeq CoxeterGroup(HAlg2);
 end intrinsic;
 
+intrinsic Parabolic(HAlg::IHkeAlg) -> SeqEnum[RngIntElt]
+{Return the parabolic subset (an empty set) corresponding to this Hecke algebra.}
+    return [Integers()|];
+end intrinsic;
+
+intrinsic FreeModuleType(HAlg::IHkeAlg) -> MonStgElt
+{The string "Hecke algebra". To be used for automatic saving/restoring modules.}
+    return "Hecke algebra";
+end intrinsic;
+
 
 /////////////////////////////////
 // The right antispherical module
@@ -50,6 +60,11 @@ intrinsic Parabolic(ASMod::IHkeASMod) -> SeqEnum[RngIntElt]
     return ASMod`Para;
 end intrinsic;
 
+intrinsic FreeModuleType(ASMod::IHkeASMod) -> MonStgElt
+{The string "Right antispherical module". To be used for automatic saving/restoring modules.}
+    return "Right antispherical module";
+end intrinsic;
+
 
 /////////////////////////////
 // The right spherical module
@@ -80,4 +95,9 @@ end intrinsic;
 intrinsic Parabolic(SMod::IHkeSMod) -> SeqEnum[RngIntElt]
 {The parabolic generators.}
     return SMod`Para;
+end intrinsic;
+
+intrinsic FreeModuleType(SMod::IHkeSMod) -> MonStgElt
+{The string "Right spherical module". To be used for automatic saving/restoring modules.}
+    return "Right spherical module";
 end intrinsic;

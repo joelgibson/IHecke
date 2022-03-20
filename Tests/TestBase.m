@@ -13,6 +13,8 @@ HAlg := IHeckeAlgebra(W);
 assert Sprint(HAlg) eq "Iwahori-Hecke algebra of type A2";
 assert CoxeterGroup(HAlg) eq W;
 LPoly<v> := BaseRing(HAlg);
+assert Parabolic(HAlg) eq [Integers()|];
+assert FreeModuleType(HAlg) eq "Hecke algebra";
 
 // Standard basis creation
 H := StandardBasis(HAlg);

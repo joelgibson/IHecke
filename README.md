@@ -22,6 +22,9 @@ the names in this package are prefixed with the letter I (standing for "Iwahori"
 intrinsic`IHeckeAlgebra()` creates an element of type `IHkeAlg`. Whenever we refer to the "Hecke
 algebra", we really mean the Iwahori-Hecke algebra.
 
+By [Joel Gibson](https://www.jgibson.id.au/), 2022.
+
+
 [Magma]: http://magma.maths.usyd.edu.au/magma/
 [SBim]: https://www.springer.com/gp/book/9783030488253
 
@@ -35,6 +38,7 @@ algebra", we really mean the Iwahori-Hecke algebra.
   - [Cells](#cells)
   - [The p-canonical basis](#the-p-canonical-basis)
   - [Antispherical and spherical modules](#antispherical-and-spherical-modules)
+  - [Literal (custom) bases](#literal-custom-bases)
 - [Examples](#examples)
   - [Printing basis elements](#printing-basis-elements)
   - [Displaying cells and p-cells](#displaying-cells-and-p-cells)
@@ -75,6 +79,9 @@ You should see some output ending in
 These tests double-check that the library is working correctly with your version of Magma. The
 library does use some newer features of Magma, such as dual iteration (`for k -> v in assocs`) which
 was introduced in version 2.25 (January 2020).
+
+If you are developing the library, you should also be running `python3 test-readme.py`, which checks that all of the
+code examples in the README are up-to-date, and `python3 lint.py`, which checks some code style and linting rules.
 
 
 ## Working with Coxeter groups in Magma
@@ -631,6 +638,86 @@ The spherical module works analagously to the antispherical module. It can be cr
 <!-- END TEST Antispherical -->
 
 
+## Literal (custom) bases
+
+A *Literal* basis is a basis defined by a look-up table which expresses coefficients in terms of either the standard or
+canonical basis. (In order to define a new basis more tightly integrated into IHecke, see the section on
+[Defining a new basis](#defining-a-new-basis) in the examples). Currently a literal basis must be unitriangular to its
+target basis. Literal bases can be saved and restored from files, and used even when they are only partially defined,
+provided that they are partially defined on a downward-closed set in the Bruhat order.
+
+In order to create a literal basis, start by creating a Hecke algebra (or spherical/antispherical module), and call the
+`CreateLiteralBasis` function. It takes four arguments: the free module, the target basis (either `"Standard"` or
+`"Canonical"`), the basis symbol, and the basis name. For this example we will define a second standard basis, which
+uses the Kazhdan-Lusztig normalisation rather than the Soergel normalisation: this scales each standard basis element
+`H(w)` by `v^-length(w)`. First we'll set things up for the four-element group `A1 x A1`.
+
+<!-- BEGIN TEST Literal -->
+
+    $ magma
+    > AttachSpec("IHecke.spec"); SetColumns(0);
+    > W := CoxeterGroup(GrpFPCox, "A1 A1");
+    > HAlg, H, C := ShortcutIHeckeAlgebra(W);
+    > LPoly<v> := BaseRing(HAlg);
+
+The next step is to create the basis and start defining elements. The basis need not be defined everywhere, but elements
+need to be defined in such an order that the inverse matrix can always be constructed.
+
+    > T := CreateLiteralBasis(HAlg, "Standard", "T", "Standard-KL basis");
+    > T;
+    Standard-KL basis of Iwahori-Hecke algebra of type A1 A1, symbol T
+
+At the moment linear combinations of the basis may be taken, but not converted into any other basis.
+
+    > T.0 + T.1;
+    (1)T(1) + (1)T(id)
+    > H ! (T.1);
+    Runtime error: The basis Standard-KL basis is not yet defined at $.1
+
+New basis elements can be installed using `SetBasisElement`:
+
+    > SetBasisElement(T, W.0, H.0);
+    > SetBasisElement(T, W.1, v^-1 * H.1);
+    > SetBasisElement(T, W.2, v^-1 * H.2);
+
+We should see that the canonical basis element `C.1` is equal to `v(T.1 + T.0)` when expressed in the KL-scaled basis.
+
+    > T ! C.1;
+    (v)T(1) + (v)T(id)
+
+The set of defined elements can be checked by using `IsDefined` and `Keys`:
+
+    > IsDefined(T, W.0);
+    true
+    > IsDefined(T, W.1 * W.2);
+    false
+    > Keys(T) eq {W.0, W.1, W.2};
+    true
+
+A literal basis can be saved and loaded at a later time. The function `SerialiseBasis` takes a literal basis and
+produces a Magma object which can be saved to a file, and later loaded back in and unpacked using `DeserialiseBasis`.
+To save to a file, use either the `Magma` print level followed by `eval`, or the `WriteObject`/`ReadObject` API.
+
+    > ser := SerialiseBasis(T);
+    > text := Sprint(ser, "Magma");
+    > // Save the text to a file here.
+    > T2 := DeserialiseBasis(HAlg, eval text);
+    > T2.1 eq T.1;
+    true
+
+**Note:** When saving to a file using the `Magma` print level, Laurent series coefficients will be printed with the
+variable `v` by default, or whatever other name you have assigned to your Laurent series ring. When using `eval`, the
+variable `v` needs to be defined in order to read the text back in: this can be done using `v := BaseRing(HAlg).1` for
+example.
+
+Notice that we needed to provide `DeserialiseBasis` with the `HAlg` object as well as the serialised basis: this `HAlg`
+object needs to match (in terms of Coxeter matrix, module type, and parabolic subset) the one which was used to create
+the basis. The serialised object contains enough human-readable data to do this.
+
+<!-- END TEST Literal -->
+
+
+
 # Examples
 
 There are some short programs in the `Examples/` directory, showing how the library can be used. The
@@ -775,6 +862,8 @@ We aim to keep these to a minimum once the package is in use.
   - The cell order relations are precomputed, making cell order testing much faster.
   - Fixed a crash when creating a Hecke algebra for a group not of affine or finite type.
   - Added a third argument to `Coefficient()` for extracting the v^d term.
+  - Finished the `LiteralBasis` type, which allows unitriangular changes of basis into either the standard or canonical
+      bases, and serialising/deserialising bases.
 - Version 2021-11-01
   - Added an experimental "literal" basis type (a basis specified by a partial table). I will wait
       to see how it plays out in other projects before making it a feature.
@@ -805,11 +894,9 @@ We aim to keep these to a minimum once the package is in use.
 - (High priority) Enhance the Literal basis
   - Allow it to be a partial basis (eg for affine groups).
   - Make some standard way to save and restore it, probably through MAGMA object files.
-- (High priority) Allow the multiplication `C(w) * C.s` to be driven by a table of mu-coefficients
-    (in other words, a W-graph) so that this special case is extremely fast. By induction (and the
-    standard multiplication formula), this means that multiplication within the canonical basis can
-    be driven entirely by the mu table.
-- (Medium priority) Error messages when doing `aC . w` for non-antispherical `w` are bad. Perhaps attach a formal set to a free module so that better error reporting can be done in the `'.'` intrinsic.
+- (Medium priority) Error messages when doing `aC . w` for non-antispherical `w` are bad. Perhaps
+    attach a formal set to a free module so that better error reporting can be done in the `'.'`
+    intrinsic.
 - (Low priority) Perform transitive reduction on the cell graph.
 - (Low priority) Allow more custom formatting of the output, such as choosing basis names, and
     choosing formatting of Coxeter group elements.
