@@ -694,6 +694,12 @@ The set of defined elements can be checked by using `IsDefined` and `Keys`:
     > Keys(T) eq {W.0, W.1, W.2};
     true
 
+The number of defined elements can be returned using the `#` operator (this is a much faster operation than building a
+new set of keys and taking its size):
+
+    > #T;
+    3
+
 A literal basis can be saved and loaded at a later time. The function `SerialiseBasis` takes a literal basis and
 produces a Magma object which can be saved to a file, and later loaded back in and unpacked using `DeserialiseBasis`.
 To save to a file, use either the `Magma` print level followed by `eval`, or the `WriteObject`/`ReadObject` API.

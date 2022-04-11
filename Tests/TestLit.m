@@ -31,6 +31,9 @@ SetBasisElement(~p2C, W![1,2], C.[1,2]);
 SetBasisElement(~p2C, W![2,1], C.[2,1]);
 SetBasisElement(~p2C, W![1,2,1], C.[1,2,1] + C.1);
 
+// Check the size works.
+assert #p2C eq 6;
+
 assert C ! p2C.[1,2,1] eq C.[1,2,1] + C.1;
 assert p2C ! C.[1,2,1] eq p2C.[1,2,1] - p2C.1;
 

@@ -85,6 +85,11 @@ intrinsic Keys(L::IHkeAlgLit) -> SetEnum[GrpFPCoxElt]
     return Keys(L`IntoTarget);
 end intrinsic;
 
+intrinsic '#'(L::IHkeAlgLit) -> RngIntElt
+{Return the number of defined basis elements.}
+    return #L`IntoTarget;
+end intrinsic;
+
 intrinsic _ToBasis(B::BasisIHke, L::IHkeAlgLit, w::GrpFPCoxElt) -> EltIHke
 {Convert from the literal basis into some other basis.}
     error if not IsDefined(L`IntoTarget, w),
