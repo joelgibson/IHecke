@@ -176,7 +176,7 @@ by checking the version:
     $ magma
     > AttachSpec("IHecke.spec");
     > IHeckeVersion();
-    IHecke version 2021-11-01
+    IHecke version 2022-04-11
 
 Now, create a `GrpFPCox` of your favourite type:
 
@@ -867,13 +867,14 @@ For example, we have the nontrivial Kazhdan-Lusztig polynomial `P(2, 2132) = v^-
 Breaking changes are marked with a (!).
 We aim to keep these to a minimum once the package is in use.
 
-- Development version
+- Version 2022-04-11 (Current version)
   - Added a faster Standard x Canonical -> Canonical multiplication.
   - The cell order relations are precomputed, making cell order testing much faster.
   - Fixed a crash when creating a Hecke algebra for a group not of affine or finite type.
   - Added a third argument to `Coefficient()` for extracting the v^d term.
   - Finished the `LiteralBasis` type, which allows unitriangular changes of basis into either the standard or canonical
       bases, and serialising/deserialising bases.
+  - Added a database of mu-coefficients, to speed up canonical multiplications in small rank finite types.
 - Version 2021-11-01
   - Added an experimental "literal" basis type (a basis specified by a partial table). I will wait
       to see how it plays out in other projects before making it a feature.

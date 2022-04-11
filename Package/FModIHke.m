@@ -2,7 +2,7 @@ declare verbose IHecke, 3;
 
 intrinsic IHeckeVersion() -> MonStgElt
 {Report version information for IHecke.}
-    return "IHecke version 2021-11-01";
+    return "IHecke version 2022-04-11";
 end intrinsic;
 
 intrinsic _IHkeCartanName(W::GrpFPCox) -> MonStgElt
