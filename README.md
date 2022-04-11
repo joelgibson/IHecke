@@ -676,9 +676,9 @@ At the moment linear combinations of the basis may be taken, but not converted i
 
 New basis elements can be installed using `SetBasisElement`:
 
-    > SetBasisElement(T, W.0, H.0);
-    > SetBasisElement(T, W.1, v^-1 * H.1);
-    > SetBasisElement(T, W.2, v^-1 * H.2);
+    > SetBasisElement(~T, W.0, H.0);
+    > SetBasisElement(~T, W.1, v^-1 * H.1);
+    > SetBasisElement(~T, W.2, v^-1 * H.2);
 
 We should see that the canonical basis element `C.1` is equal to `v(T.1 + T.0)` when expressed in the KL-scaled basis.
 
@@ -709,6 +709,8 @@ To save to a file, use either the `Magma` print level followed by `eval`, or the
 variable `v` by default, or whatever other name you have assigned to your Laurent series ring. When using `eval`, the
 variable `v` needs to be defined in order to read the text back in: this can be done using `v := BaseRing(HAlg).1` for
 example.
+
+**Note:** As of Magma V2.26-11, there is a crash when using `WriteObject` on a record which contains a dense integer matrix. Until this is fixed, the `Magma` print level followed by `eval` should be used to write a basis object to disk.
 
 Notice that we needed to provide `DeserialiseBasis` with the `HAlg` object as well as the serialised basis: this `HAlg`
 object needs to match (in terms of Coxeter matrix, module type, and parabolic subset) the one which was used to create
@@ -753,6 +755,8 @@ To print a table:
     12  v^2 v   v   1
     21  v^2 v   v       1
     121 v^3 v^2 v^2 v   v   1
+
+To print the inverse table, pass `inverse:=true` on the command line.
 
 
 ## Displaying cells and p-cells
@@ -901,8 +905,6 @@ We aim to keep these to a minimum once the package is in use.
 - (Low priority) Allow more custom formatting of the output, such as choosing basis names, and
     choosing formatting of Coxeter group elements.
 - (Low priority) Performance:
-  - Write another implementation of cells using only the mu-coefficients from the canonical basis,
-      which should be faser than the naive version.
   - Try swapping out the Laurent series ring for a rational function field, and see if operations
     go faster (especially checking self-duality using the bar involution, and building cells).
     - When I tried this (the only operation which is unclear is taking the coefficient of v, but

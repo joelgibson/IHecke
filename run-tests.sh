@@ -2,10 +2,11 @@
 
 # Run each test file
 for f in Tests/Test*.m; do
-    echo -n "Running $f ... "
+    declare cmd="magma -b $f"
+    echo -n "$cmd ... "
 
     # For some reason passing batch:=true here (or any other argument) causes magma to segfault.
-    magma -b "$f"
+    $cmd
     if [ $? -ne 0 ]; then
         exit
     fi

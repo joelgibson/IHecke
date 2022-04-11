@@ -22,14 +22,14 @@ assert BaseRing(p2C) eq BaseRing(HAlg);
 assert p2C eq p2C;
 
 // Set a partial canonical basis (as if we're calculating it using some algorithm).
-SetBasisElement(p2C, W.0, C.0);
+SetBasisElement(~p2C, W.0, C.0);
 assert C ! p2C.0 eq C.0;
 
-SetBasisElement(p2C, W.1, C.1);
-SetBasisElement(p2C, W.2, C.2);
-SetBasisElement(p2C, W![1,2], C.[1,2]);
-SetBasisElement(p2C, W![2,1], C.[2,1]);
-SetBasisElement(p2C, W![1,2,1], C.[1,2,1] + C.1);
+SetBasisElement(~p2C, W.1, C.1);
+SetBasisElement(~p2C, W.2, C.2);
+SetBasisElement(~p2C, W![1,2], C.[1,2]);
+SetBasisElement(~p2C, W![2,1], C.[2,1]);
+SetBasisElement(~p2C, W![1,2,1], C.[1,2,1] + C.1);
 
 assert C ! p2C.[1,2,1] eq C.[1,2,1] + C.1;
 assert p2C ! C.[1,2,1] eq p2C.[1,2,1] - p2C.1;
@@ -49,14 +49,13 @@ text := Sprint(serialised, "Magma");
 evalled := eval text;
 L := DeserialiseBasis(HAlg, evalled);
 
-// TODO: When putting (H ! ) in front of these, gets a segmentation fault.
 for w in EnumerateCoxeterGroup(W) do
     if IsDefined(L, w) then
-        assert H ! p2C.w eq L.w;
+        assert H ! p2C.w eq H ! L.w;
     end if;
 end for;
 
-// TODO: Un-comment this when it no longer crashes Magma.
+// TODO: Un-comment this test when the Magma crash with dense-matrix-inside-record is fixed.
 // fname := GetTempDir() cat "/" cat Tempname("IHecke-TestLit-XXX");
 // fd := Open(fname, "wb");
 // WriteObject(fd, r);
@@ -71,7 +70,7 @@ LPoly := BaseRing(HAlg);
 T := CreateLiteralBasis(HAlg, "Standard", "T", "Standard-KL basis");
 
 for w in EnumerateCoxeterGroup(W) do
-    SetBasisElement(T, w, v^(-#w) * H.w);
+    SetBasisElement(~T, w, v^(-#w) * H.w);
 end for;
 
 for w in EnumerateCoxeterGroup(W) do
@@ -79,8 +78,7 @@ for w in EnumerateCoxeterGroup(W) do
     assert T ! H.w eq v^#w * T.w;
 end for;
 
-// Check that serialise/deserialise works even when we have Laurent polynomial coefficients and have renamed the
-// Laurent series variable.
+// Check that serialise/deserialise works even when we have Laurent polynomial coefficients.
 text := Sprint(SerialiseBasis(T), "Magma");
 v := LPoly.1;
 T2 := DeserialiseBasis(HAlg, eval text);

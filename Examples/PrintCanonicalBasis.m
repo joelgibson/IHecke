@@ -20,6 +20,7 @@ procedure Usage(missingArg)
     print "Arguments:";
     print "  type    (required) Cartan type, eg A2, B3, F4, ...";
     print "  tabular (optional) Print a tab-separated table, to feed into `column -t`.";
+    print "  inverse (optional) If set, show the inverse KL polynomials.";
 end procedure;
 
 if not assigned type then
@@ -32,6 +33,14 @@ HAlg := IHeckeAlgebra(W);
 H := StandardBasis(HAlg);
 C := CanonicalBasis(HAlg);
 
+if not assigned inverse then
+    Into := H;
+    From := C;
+else
+    Into := C;
+    From := H;
+end if;
+
 procedure simplePrint()
     printf "Numbering convention for type %o:\n", type;
     CoxeterDiagram(W);
@@ -39,7 +48,7 @@ procedure simplePrint()
     print "Canonical basis:";
 
     for w in EnumerateCoxeterGroup(W) do
-        printf "%o = %o\n", C.w, H ! C.w;
+        printf "%o = %o\n", From.w, Into ! From.w;
     end for;
 end procedure;
 
@@ -58,9 +67,9 @@ procedure tabularPrint()
 
     for w in elts do
         printf FmtElt(w);
-        Cw := H ! C.w;
+        Elt := Into ! From.w;
         for y in elts do
-            coeff := Coefficient(Cw, y);
+            coeff := Coefficient(Elt, y);
             if coeff ne 0 then
                 printf "\t%o", &*Split(Sprint(coeff), " ");
             else;

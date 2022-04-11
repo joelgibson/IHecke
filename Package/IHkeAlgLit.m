@@ -6,14 +6,6 @@ declare attributes IHkeAlgLit:
     IntoTarget,     // Assoc, changes from the literal basis into the target basis.
     OutOfTarget;    // Assoc, changes from the target basis into the literal basis.
 
-// TODO: Clean this up
-// Plan:
-//   - Literal basis should be triangular to either the standard or canonical basis (user may choose).
-//   - Needs to work for spherical and antispherical modules.
-//   - Needs to be saveable (save must encode group, free module, and coefficients).
-//     - Have a function for serialising a basis (returns a serialisable Magma object) and restoring. Let someone else
-//       deal with actually saving. (Put a code snippet in the README).
-
 intrinsic CreateLiteralBasis(FMod::FModIHke, TargetBasis::MonStgElt, symbol::MonStgElt, name::MonStgElt) -> IHkeAlgLit
 {A basis which is defined "literally", i.e. by a look-up table in terms of another basis. The TargetBasis should be
  either "Standard" or "Canonical", which may affect the performance of the basis, but is otherwise invisible.}
@@ -49,7 +41,7 @@ function IsLaurentPolyUnit(poly)
     return #intcoeffs eq 1 and Abs(intcoeffs[1]) eq 1;
 end function;
 
-intrinsic SetBasisElement(L::IHkeAlgLit, w::GrpFPCoxElt, Lw::EltIHke)
+intrinsic SetBasisElement(~L::IHkeAlgLit, w::GrpFPCoxElt, Lw::EltIHke)
 {Set L.w = Lw. Throws an error if L.w is already defined.}
     W := CoxeterGroup(L);
     require Parent(w) eq W: "Coxeter group has incorrect parent";
@@ -63,8 +55,6 @@ intrinsic SetBasisElement(L::IHkeAlgLit, w::GrpFPCoxElt, Lw::EltIHke)
         select StandardBasis(FreeModule(L))
           else CanonicalBasis(FreeModule(L));
 
-
-    // TODO: Should we check that it is defined on all descents or something?
 
     // Set the basis element, and the inverse map.
     L`IntoTarget[w] := B ! Lw;
@@ -206,8 +196,6 @@ intrinsic DeserialiseBasis(FMod::FModIHke, ser::Rec) -> IHkeAlgLit
         Sprintf("Basis to be deserialised is for \"%o\", not for \"%o\"", FreeModuleType(FMod), ser`FreeModuleType);
     require ser`Parabolic eq Parabolic(FMod):
         Sprintf("Basis to be deserialised has incompatible parabolic subset %o", ser`Parabolic);
-
-    // TODO: Something with target basis, once we allow a different target basis.
 
     grpelts := {@ W | W ! rex : rex in ser`Rexes @};
     L := LiteralBasisInCan(FMod, ser`BasisSymbol, ser`BasisName);
