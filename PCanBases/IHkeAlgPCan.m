@@ -61,6 +61,7 @@ function pCanIsDefinitelyCan(type, rank, prime)
     elif type eq "G" and rank eq 2 then
         return prime ge 5;
     end if;
+    return false;
 end function;
 
 intrinsic PCanonicalBasis(HAlg::IHkeAlg, cartanName::MonStgElt, prime::RngIntElt: quiet := true) -> BasisIHke

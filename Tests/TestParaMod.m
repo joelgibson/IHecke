@@ -1,5 +1,4 @@
-// Test creation of the spherical and antispherical modules, and the action of the Hecke algebra
-// upon these modules.
+// Test creation of the spherical and antispherical modules, and the action of the Hecke algebra upon these modules.
 
 SetQuitOnError(true);
 SetColumns(0);
@@ -31,6 +30,8 @@ ASMod := IHeckeASMod(W, [2]);
 // Module accessors
 assert Sprint(ASMod) eq "Antispherical module of type A2, parabolic [ 2 ]";
 assert CoxeterGroup(ASMod) eq W;
+assert Parabolic(ASMod) eq [2];
+assert FreeModuleType(ASMod) eq "Right antispherical module";
 
 // Standard basis creation
 aH := StandardBasis(ASMod);
@@ -101,6 +102,8 @@ SMod := IHeckeSMod(W, [2]);
 // Module accessors
 assert Sprint(SMod) eq "Spherical module of type A2, parabolic [ 2 ]";
 assert CoxeterGroup(SMod) eq W;
+assert Parabolic(SMod) eq [2];
+assert FreeModuleType(SMod) eq "Right spherical module";
 
 // Standard basis creation
 sH := StandardBasis(SMod);

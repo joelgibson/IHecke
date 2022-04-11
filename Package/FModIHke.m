@@ -1,6 +1,17 @@
+declare verbose IHecke, 3;
+
 intrinsic IHeckeVersion() -> MonStgElt
 {Report version information for IHecke.}
-    return "IHecke version 2021-11-01";
+    return "IHecke version 2022-04-11";
+end intrinsic;
+
+intrinsic _IHkeCartanName(W::GrpFPCox) -> MonStgElt
+{Return the Cartan name of W if it is finite or affine, and otherwise something like X9.}
+    try
+        return CartanName(W);
+    catch e
+        return Sprintf("X%o", Rank(W));
+    end try;
 end intrinsic;
 
 

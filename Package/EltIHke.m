@@ -66,11 +66,20 @@ intrinsic FreeModule(elt::EltIHke) -> FModIHke
 end intrinsic;
 
 intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt) -> RngElt
-{Return the coefficient of w in the linear combination.}
+{Return the coefficient of B(w) in the linear combination, where B is the basis of elt.}
     if IsDefined(elt`Terms, w) then
         return elt`Terms[w];
     else
         return BaseRing(Parent(elt)) ! 0;
+    end if;
+end intrinsic;
+
+intrinsic Coefficient(elt::EltIHke, w::GrpFPCoxElt, d::RngIntElt) -> RngIntElt
+{Return the coefficient of B(w) v^d in the linear combination, where B is the basis of elt.}
+    if IsDefined(elt`Terms, w) then
+        return Coefficient(elt`Terms[w], d);
+    else
+        return 0;
     end if;
 end intrinsic;
 
@@ -214,6 +223,28 @@ intrinsic '-'(elt1::EltIHke, elt2::EltIHke) -> EltIHke
     return EltIHkeConstruct(Parent(elt1), assocs);
 end intrinsic;
 
+intrinsic '-:='(~elt1::EltIHke, elt2::EltIHke)
+{}
+    error if FreeModule(elt1) ne FreeModule(elt2),
+        "Cannot subtract in different free modules", FreeModule(elt1), "and", FreeModule(elt2);
+
+    // Change into the left basis if necessary.
+    if Parent(elt1) ne Parent(elt2) then
+        elt2 := ToBasis(Parent(elt1), Parent(elt2), elt2);
+    end if;
+
+    for k2 -> v2 in elt2`Terms do
+        ok, v1 := IsDefined(elt1`Terms, k2);
+        if ok and v1 eq v2 then
+            Remove(~elt1`Terms, k2);
+        elif ok then
+            elt1`Terms[k2] := v1 - v2;
+        else
+            elt1`Terms[k2] := -v2;
+        end if;
+    end for;
+end intrinsic;
+
 intrinsic '*'(elt::EltIHke, scalar::RngElt) -> EltIHke
 {Scale an element by a scalar (Laurent polynomial or integer).}
     ok, r := IsCoercible(BaseRing(Parent(elt)), scalar);
@@ -243,6 +274,7 @@ intrinsic '*'(eltA::EltIHke, eltB::EltIHke) -> EltIHke
         return Parent(eltA) ! 0;
     end if;
 
+    // See if there is an inbuilt multiplication for these basis types.
     result := _Multiply(Parent(eltA), eltA, Parent(eltB), eltB);
     if Type(result) eq EltIHke then
         return result;

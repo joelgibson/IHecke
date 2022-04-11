@@ -8,7 +8,7 @@ intrinsic IHeckeAlgebra(W::GrpFPCox) -> IHkeAlg
     // Magma has no Laurent polynomials, but we can use the polynomial part of the series ring.
     LPolyRing<v> := LaurentSeriesRing(Integers());
     HAlg := New(IHkeAlg);
-    name := Sprintf("Iwahori-Hecke algebra of type %o", CartanName(W));
+    name := Sprintf("Iwahori-Hecke algebra of type %o", _IHkeCartanName(W));
     _FModIHkeInit(~HAlg, LPolyRing, name, W);
     return HAlg;
 end intrinsic;
@@ -16,6 +16,16 @@ end intrinsic;
 intrinsic 'eq'(HAlg1::IHkeAlg, HAlg2::IHkeAlg) -> BoolElt
 {Hecke algebras compare equal if they are instantiated from the same Coxeter group object.}
     return CoxeterGroup(HAlg1) cmpeq CoxeterGroup(HAlg2);
+end intrinsic;
+
+intrinsic Parabolic(HAlg::IHkeAlg) -> SeqEnum[RngIntElt]
+{Return the parabolic subset (an empty set) corresponding to this Hecke algebra.}
+    return [Integers()|];
+end intrinsic;
+
+intrinsic FreeModuleType(HAlg::IHkeAlg) -> MonStgElt
+{The string "Hecke algebra". To be used for automatic saving/restoring modules.}
+    return "Hecke algebra";
 end intrinsic;
 
 
@@ -34,7 +44,7 @@ intrinsic IHeckeASMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeASMod
     LPolyRing<v> := LaurentSeriesRing(Integers());
 
     asmod := New(IHkeASMod);
-    name := Sprintf("Antispherical module of type %o, parabolic %o", CartanName(W), I);
+    name := Sprintf("Antispherical module of type %o, parabolic %o", _IHkeCartanName(W), I);
     _FModIHkeInit(~asmod, LPolyRing, name, W);
     asmod`Para := I;
     return asmod;
@@ -48,6 +58,11 @@ end intrinsic;
 intrinsic Parabolic(ASMod::IHkeASMod) -> SeqEnum[RngIntElt]
 {The parabolic generators.}
     return ASMod`Para;
+end intrinsic;
+
+intrinsic FreeModuleType(ASMod::IHkeASMod) -> MonStgElt
+{The string "Right antispherical module". To be used for automatic saving/restoring modules.}
+    return "Right antispherical module";
 end intrinsic;
 
 
@@ -66,7 +81,7 @@ intrinsic IHeckeSMod(W::GrpFPCox, I::SeqEnum[RngIntElt]) -> IHkeSMod
     LPolyRing<v> := LaurentSeriesRing(Integers());
 
     smod := New(IHkeSMod);
-    name := Sprintf("Spherical module of type %o, parabolic %o", CartanName(W), I);
+    name := Sprintf("Spherical module of type %o, parabolic %o", _IHkeCartanName(W), I);
     _FModIHkeInit(~smod, LPolyRing, name, W);
     smod`Para := I;
     return smod;
@@ -80,4 +95,9 @@ end intrinsic;
 intrinsic Parabolic(SMod::IHkeSMod) -> SeqEnum[RngIntElt]
 {The parabolic generators.}
     return SMod`Para;
+end intrinsic;
+
+intrinsic FreeModuleType(SMod::IHkeSMod) -> MonStgElt
+{The string "Right spherical module". To be used for automatic saving/restoring modules.}
+    return "Right spherical module";
 end intrinsic;

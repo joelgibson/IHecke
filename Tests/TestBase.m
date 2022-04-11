@@ -1,5 +1,4 @@
-// Test creation of a Hecke algebra and its standard basis, and basic operations within the standard
-// basis.
+// Test creation of a Hecke algebra and its standard basis, and basic operations within the standard basis.
 
 SetQuitOnError(true);
 SetColumns(0);
@@ -14,6 +13,8 @@ HAlg := IHeckeAlgebra(W);
 assert Sprint(HAlg) eq "Iwahori-Hecke algebra of type A2";
 assert CoxeterGroup(HAlg) eq W;
 LPoly<v> := BaseRing(HAlg);
+assert Parabolic(HAlg) eq [Integers()|];
+assert FreeModuleType(HAlg) eq "Hecke algebra";
 
 // Standard basis creation
 H := StandardBasis(HAlg);
@@ -37,6 +38,11 @@ assert H.[1,2,1] eq H.(W ! [1,2,1]);
 assert Parent(H.0) eq H;
 assert Coefficient(H.0, W.0) eq 1;
 assert Coefficient(H.0, W.1) eq 0;
+
+// Coefficient for B(w) v^d.
+assert Coefficient(H.0, W.0, 0) eq 1;
+assert Coefficient(H.0, W.0, 1) eq 0;
+assert Coefficient(H.0 -3 * v^2 * H.1, W.1, 2) eq -3;
 
 // Standard basis coercion from scalars.
 assert IsZero(H ! 0);

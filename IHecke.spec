@@ -16,4 +16,8 @@
         IHkeAlgPCan.m
         PCanDB.m
     }
+    MuCoeffs
+    {
+        MuCoeffs.m
+    }
 }

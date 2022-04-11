@@ -5,11 +5,14 @@ declare type IHkeAlgBaseCan: BasisIHke;
 declare attributes IHkeAlgBaseCan:
     CanInStdCache,
     StdInCanCache,
+    StdMultCanCache,
     MuCache,
     Para,
-    Eig;
+    Eig,
+    MuTable;
 
-// Factory function for basis types extending IHkeAlgBaseCan.
+// Factory function for basis types extending IHkeAlgBaseCan. Returns second argument true if the
+// basis was just created, or false if it was loaded from the cache.
 function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
     assert ISA(basisType, IHkeAlgBaseCan);
     if not IsDefined(fmod`BasisCache, basisType) then
@@ -17,13 +20,15 @@ function _GetOrCreateBasis(fmod, basisType, symbol, name, para, eig)
         _BasisIHkeInit(~basis, fmod, symbol, name);
         basis`CanInStdCache := AssociativeArray();
         basis`StdInCanCache := AssociativeArray();
-        basis`MuCache := AssociativeArray();
+        basis`StdMultCanCache := AssociativeArray();
+        basis`MuCache := AssociativeArray(CoxeterGroup(fmod));
         basis`Para := para;
         basis`Eig := eig;
         fmod`BasisCache[basisType] := basis;
+        return basis, true;
     end if;
 
-    return fmod`BasisCache[basisType];
+    return fmod`BasisCache[basisType], false;
 end function;
 
 // Assume that elt is an element written in terms of the standard basis, and right-multiply
@@ -58,6 +63,12 @@ function _MuCoeffs(H, C, w)
     W := CoxeterGroup(C);
     if #w eq 0 then
         return AssociativeArray(W);
+    end if;
+
+    if assigned C`MuTable then
+        mu := _MuCoeffFromTable(C`MuTable, w);
+        C`MuCache[w] := mu;
+        return mu;
     end if;
 
     Cw := _ToBasis(H, C, w);
@@ -153,9 +164,20 @@ end intrinsic;
 
 declare type IHkeAlgCan[EltIHke]: IHkeAlgBaseCan;
 
-intrinsic CanonicalBasis(HAlg::IHkeAlg) -> IHkeAlgCan
+intrinsic CanonicalBasis(HAlg::IHkeAlg : UseTable := true) -> IHkeAlgCan
 {The canonical basis of the Hecke algebra.}
-    return _GetOrCreateBasis(HAlg, IHkeAlgCan, "C", "Canonical basis", [], 0);
+    basis, justCreated := _GetOrCreateBasis(HAlg, IHkeAlgCan, "C", "Canonical basis", [], 0);
+    if justCreated and UseTable then
+        ok, table := _LoadMuTable(CoxeterGroup(HAlg));
+        if ok then
+            basis`MuTable := table;
+            vprintf IHecke: "IHecke: Mu coefficients for %o loaded from the database\n", _IHkeCartanName(CoxeterGroup(HAlg));
+        else
+            // This is useful for debugging.
+            vprintf IHecke, 3: "IHecke: No mu coefficients found for %o\n", _IHkeCartanName(CoxeterGroup(HAlg));
+        end if;
+    end if;
+    return basis;
 end intrinsic;
 
 intrinsic _ToBasis(H::IHkeAlgStd, C::IHkeAlgCan, w::GrpFPCoxElt) -> EltIHke
@@ -236,6 +258,80 @@ intrinsic _Multiply(C::IHkeAlgCan, eltA::EltIHke, B::IHkeAlgCan, eltB::EltIHke) 
     end if;
 
     return false;
+end intrinsic;
+
+// Returns the terms of H(s) * C(w) in the C basis. I'm not sure whether this is really worth
+// the tradeoff for caching...
+function StdMultCan(H, C, s, w)
+    pair := <s, w>;
+    if IsDefined(C`StdMultCanCache, pair) then
+        return C`StdMultCanCache[pair];
+    end if;
+
+    W := CoxeterGroup(C);
+    L := BaseRing(C);
+    v := L.1;
+    Ws := W.s;
+    terms := AssociativeArray(W);
+    if Ws * w lt w then
+        _AddScaledTerm(~terms, w,  v^-1);
+    else
+        _AddScaledTerm(~terms, w, -v);
+        _AddScaledTerm(~terms, Ws * w, L ! 1);
+        for z -> coeffMu in _MuCoeffs(H, C, w) do
+            if Ws * z lt z then
+                _AddScaledTerm(~terms, z, coeffMu);
+            end if;
+        end for;
+    end if;
+    _RemoveZeros(~terms);
+    C`StdMultCanCache[pair] := terms;
+    return terms;
+end function;
+
+intrinsic _Multiply(H::IHkeAlgStd, eltH::EltIHke, C::IHkeAlgCan, eltC::EltIHke) -> EltIHke
+{Standard x Canonical -> Canonical multiplication. Given that we have tables of mu-coefficients,
+ this multiplication can be done quickly by factorising H(w) = H(s1)...H(sn), and then using
+ H(s) = C(s) - v, and the product formula for C(s)C(w) into a sum of C.}
+
+    // I've tried pretty hard to optimise this function, so I'm leaving this here as a record.
+    // By far one of the most effective ways to speed things up is to do less work: running
+    // _RemoveZeros (or something equivalent) after each step allows cancellation to really happen.
+    //
+    // Comparing x lt y is faster than #x lt #y for Coxeter group elements (though we really need
+    // |l(x) - l(y)| = 1 to make this replacement, otherwise we end up comparing elements in ShortLex
+    // order or something, instead of the Bruhat order).
+
+    W := CoxeterGroup(H);
+    L := BaseRing(C);
+    v := L.1;
+
+    resultTerms := AssociativeArray(W);
+    for wH -> coeffH in eltH`Terms do
+        terms := eltC`Terms;
+        for s in Reverse(Eltseq(wH)) do
+            // terms <- (C(s) - v)*terms;
+            newTerms := AssociativeArray(W);
+            for wC -> coeffC in terms do
+                _AddScaled(~newTerms, StdMultCan(H, C, s, wC), coeffC);
+            end for;
+            _RemoveZeros(~newTerms);
+            terms := newTerms;
+        end for;
+        _AddScaled(~resultTerms, terms, coeffH);
+    end for;
+
+    _RemoveZeros(~resultTerms);
+    return EltIHkeConstruct(C, resultTerms);
+end intrinsic;
+
+// Load in precalculated mu-coefficients from a file.
+intrinsic LoadCanonicalBasisMu(C::IHkeAlgCan, mu::Assoc)
+{Load pre-calculated mu coefficients. Each mu[w] should be another associative array, so that
+ mu[w][x] is the mu-coefficient mu(x, w).}
+    for x -> muvec in mu do
+        C`MuCache[x] := muvec;
+    end for;
 end intrinsic;
 
 
