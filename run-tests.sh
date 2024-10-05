@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Print the system version.
+echo "System version:" $(uname -smr)
+
 # Run each test file
 for f in Tests/Test*.m; do
     declare cmd="magma -b $f"

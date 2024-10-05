@@ -84,6 +84,12 @@ function _MuCoeffs(H, C, w)
     return mu;
 end function;
 
+// Added for KL opt project.
+intrinsic MuCoeffs(H::IHkeAlgStd, C::IHkeAlgCan, w::GrpFPCoxElt) -> Assoc
+{}
+    return _MuCoeffs(H, C, w);
+end intrinsic;
+
 // Express C(w) in the standard basis.
 function _CanToStd(H, C, w, I, eig)
     if IsDefined(C`CanInStdCache, w) then
